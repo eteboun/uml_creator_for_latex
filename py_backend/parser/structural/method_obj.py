@@ -10,7 +10,7 @@ class Parameter:
 @dataclass
 class Method:
     name: str
-    access: m.Access
-    rType: dt.DefType
-    nonaccess: list[m.NonAccess] = field(default_factory=list)
+    access: m.AccessSpecifiers
+    type_: dt.DefType
+    modifier: list[m.Modifiers] = field(default_factory=list)
     args: list[Parameter] = field(default_factory=list)

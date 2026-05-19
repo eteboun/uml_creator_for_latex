@@ -1,13 +1,13 @@
 from enum import Enum
 
-class Access(Enum):
+class AccessSpecifiers(Enum):
     PUBLIC = 'public'
     PRIVATE = 'private'
     PROTECTED = 'protected'
     PACKAGE = 'package'
-    PACKAGE_PRIVATE = 'package-private'
+    PACKAGE_PRIVATE = ''
 
-class NonAccess(Enum):
+class Modifiers(Enum):
     FINAL = 'final'
     ABSTRACT = 'abstract'
     STATIC = 'static'

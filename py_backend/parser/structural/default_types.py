@@ -8,7 +8,7 @@ class DefType:
     generics: list = field(default_factory=list)
 
 class ClassType(Enum):
-    CLASS = 'class'
-    RECORD = 'record'
-    INTERFACE = 'interface'
-    ENUM = 'enum'
+    CLASS = 'CLASS'
+    RECORD = 'RECORD'
+    INTERFACE = 'INTERFACE'
+    ENUM = 'ENUM'

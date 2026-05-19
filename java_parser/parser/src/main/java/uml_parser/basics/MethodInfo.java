@@ -1,9 +1,9 @@
-package org.uml_parser;
+package uml_parser.basics;
 
 import java.util.List;
 
 public record MethodInfo(String name,
-                        String rType,
+                        String type_,
                         String accessSpecifier,
                         List<String> modifiers,
                          List<ParameterInfo> parameters) {}

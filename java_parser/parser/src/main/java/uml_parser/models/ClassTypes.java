@@ -1,4 +1,4 @@
-package org.uml_parser;
+package uml_parser.models;
 
 public enum ClassTypes {
     CLASS,

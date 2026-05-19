@@ -6,5 +6,5 @@ from dataclasses import dataclass, field
 class Attribute:
     name: str
     type_: dt.DefType
-    access: m.Access
-    nonaccess: list[m.NonAccess] = field(default_factory=list)
+    accessSpecifier: m.AccessSpecifiers
+    modifier: list[m.Modifiers] = field(default_factory=list)
