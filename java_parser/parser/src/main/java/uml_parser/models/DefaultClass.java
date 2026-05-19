@@ -1,7 +1,7 @@
 package uml_parser.models;
 import uml_parser.basics.FieldInfo;
 import uml_parser.basics.MethodInfo;
-import uml_parser.models.properties.*;
+import uml_parser.properties.*;
 
 import java.util.List;
 

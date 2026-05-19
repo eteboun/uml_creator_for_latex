@@ -1,12 +1,17 @@
-from structural import class_obj as co
+from structural import class_objects as co
 from structural import default_types as dt
 import subprocess
 import json
 
 java_code = """
-public enum A {
-    EEE,
-    AAA
+public class A {
+    inek a;
+    int b;
+    private ArrayList<Double> numis;
+    
+    void sayHello() {
+        System.out.println("Hello");
+    }
 }
 """
 
@@ -19,5 +24,3 @@ result = subprocess.run(
 
 class_structs = json.loads(result.stdout)
 c_objs = []
-
-print(class_structs)

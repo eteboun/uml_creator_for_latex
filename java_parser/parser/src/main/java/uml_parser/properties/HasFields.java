@@ -1,4 +1,4 @@
-package uml_parser.models.properties;
+package uml_parser.properties;
 
 import uml_parser.basics.FieldInfo;
 

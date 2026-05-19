@@ -13,13 +13,16 @@ import uml_parser.models.*;
 import uml_parser.basics.FieldInfo;
 import uml_parser.basics.MethodInfo;
 import uml_parser.basics.ParameterInfo;
-import uml_parser.models.properties.TypeInfo;
+import uml_parser.properties.TypeInfo;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws JsonProcessingException {
+
+        Locale.setDefault(Locale.ROOT);
 
         // Setting config
         ParserConfiguration config = new ParserConfiguration();

@@ -1,3 +1,6 @@
+from structural import class_modules as cm
+from structural import default_types as dt
+
 def text_wrapper(text, threshold = 50):
     nodes = (',', '(', ' ')
     new_text = []
