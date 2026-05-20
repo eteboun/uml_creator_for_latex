@@ -7,7 +7,7 @@ class Field:
     name: str
     type_: dt.DefType
     accessSpecifier: m.AccessSpecifiers
-    modifier: list[m.Modifiers] = field(default_factory=list)
+    modifiers: list[m.Modifiers] = field(default_factory=list)
 
 @dataclass
 class Parameter:
@@ -17,7 +17,7 @@ class Parameter:
 @dataclass
 class Method:
     name: str
-    access: m.AccessSpecifiers
+    accessSpecifier: m.AccessSpecifiers
     type_: dt.DefType
-    modifier: list[m.Modifiers] = field(default_factory=list)
-    args: list[Parameter] = field(default_factory=list)
+    modifiers: list[m.Modifiers] = field(default_factory=list)
+    parameters: list[Parameter] = field(default_factory=list)
