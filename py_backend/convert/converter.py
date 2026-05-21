@@ -8,7 +8,7 @@ java_code = """
 public class A {
     inek a;
     int b;
-    private ArrayList<Integer> numis;
+    private ArrayList<A<B>,C[], D<K>[]>[][] numis;
     
     void sayHello(int sayi) {
         System.out.println("Hello");
@@ -17,7 +17,7 @@ public class A {
 """
 
 result = subprocess.run(
-    ["java", "-jar", "..\\..\\java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
+    ["java", "-jar", "..\\java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
     input=java_code,
     text=True,
     capture_output=True
@@ -43,5 +43,3 @@ for cs in class_structs:
         c_obj = co.EnumObj(**cs)
 
     c_objs.append(c_obj)
-
-print(c_objs)
