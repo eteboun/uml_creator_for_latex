@@ -15,6 +15,17 @@ class Parameter:
     type_: dt.DefType
 
 @dataclass
+class Constant:
+    name: str
+    args: list = field(default_factory=list)
+
+@dataclass
+class Constructor:
+    name: str
+    accessSpecifier: m.AccessSpecifiers
+    parameters: list[Parameter] = field(default_factory=list)
+
+@dataclass
 class Method:
     name: str
     accessSpecifier: m.AccessSpecifiers

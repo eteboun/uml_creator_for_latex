@@ -1,45 +1,71 @@
-from .structural import class_objects as co
-from .structural import default_types as dt
+from py_backend.structural import class_objects as co
+from py_backend.structural import default_types as dt
 from . import utils as ut
 import subprocess
 import json
 
 java_code = """
-public class A {
-    inek a;
-    int b;
-    private ArrayList<A<B>,C[], D<K>[]>[][] numis;
-    
-    void sayHello(int sayi) {
-        System.out.println("Hello");
+import java.util.ArrayList;
+
+public class Queue<T> {
+    final private ArrayList<T> list = new ArrayList<>();
+
+    Queue() {}
+
+    public boolean isEmpty() {
+        return list.isEmpty();
+    }
+    public int size() {
+        return list.size();
+    }
+    public void enqueue(T item) {
+        list.add(item);
+    }
+    public T dequeue() {
+        T item = list.getFirst();
+        list.removeFirst();
+        return item;
     }
 }
+
 """
 
-result = subprocess.run(
-    ["java", "-jar", "..\\java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
-    input=java_code,
-    text=True,
-    capture_output=True
-)
-class_structs = json.loads(result.stdout)
-c_objs = []
+def run():
 
-for cs in class_structs:
-    cs['type_'] = t = dt.ClassType(cs['type_'])
-    cs['fields'] = ut.parse_fields(cs['fields'])
-    cs['methods'] = ut.parse_methods(cs['methods'])
+    result = subprocess.run(
+        ["java", "-jar", f"java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
+        input=java_code,
+        text=True,
+        capture_output=True
+    )
+    class_structs = json.loads(result.stdout)
+    c_objs = []
 
-    if t == dt.ClassType.CLASS:
-        c_obj = co.ClassObj(**cs)
+    for cs in class_structs:
+        cs['type_'] = t = dt.ClassType(cs['type_'])
+        cs['fields'] = ut.parse_fields(cs['fields'])
+        cs['methods'] = ut.parse_methods(cs['methods'])
 
-    elif t == dt.ClassType.RECORD:
-        c_obj = co.RecordObj(**cs)
+        if t == dt.ClassType.CLASS:
+            cs['constructors'] = ut.parse_constructors(cs['constructors'])
+            c_obj = co.ClassObj(**cs)
 
-    elif t == dt.ClassType.INTERFACE:
-        c_obj = co.InterfaceObj(**cs)
+        elif t == dt.ClassType.RECORD:
+            cs['parameters'] = ut.parse_parameters(cs['parameters'])
+            cs['constructors'] = ut.parse_constructors(cs['constructors'])
+            c_obj = co.RecordObj(**cs)
 
-    else:
-        c_obj = co.EnumObj(**cs)
+        elif t == dt.ClassType.INTERFACE:
+            c_obj = co.InterfaceObj(**cs)
 
-    c_objs.append(c_obj)
+        else:
+            cs['constants'] = ut.parse_constants(cs['constants'])
+            cs['constructors'] = ut.parse_constructors(cs['constructors'])
+            c_obj = co.EnumObj(**cs)
+
+        c_objs.append(c_obj)
+
+    return c_objs
+
+
+

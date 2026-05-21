@@ -17,6 +17,7 @@ class ClassObj(Base):
     extends_: list = field(default_factory=list)
     implements_: list = field(default_factory=list)
     permits_: list = field(default_factory=list)
+    constructors: list = field(default_factory=list)
 
 @dataclass
 class InterfaceObj(Base):
@@ -27,8 +28,10 @@ class InterfaceObj(Base):
 class RecordObj(Base):
     implements_: list = field(default_factory=list)
     parameters: list = field(default_factory=list)
+    constructors: list = field(default_factory=list)
 
 @dataclass
 class EnumObj(Base):
     implements_: list = field(default_factory=list)
     constants: list = field(default_factory=list)
+    constructors: list = field(default_factory=list)

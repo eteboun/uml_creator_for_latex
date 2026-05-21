@@ -1,4 +1,5 @@
 package uml_parser.models;
+import uml_parser.basics.ConstructorInfo;
 import uml_parser.basics.FieldInfo;
 import uml_parser.basics.MethodInfo;
 import uml_parser.basics.ParameterInfo;
@@ -12,6 +13,7 @@ public record DefaultRecord(String name,
                            List<String> modifiers,
                            List<ParameterInfo> parameters,
                            List<FieldInfo> fields,
+                           List<ConstructorInfo> constructors,
                            List<MethodInfo> methods,
                            List<String> implements_
-) implements TypeInfo, HasMethods, HasFields, HasImplements, HasParameters {}
+) implements TypeInfo, HasMethods, HasFields, HasImplements, HasParameters, HasConstructors {}

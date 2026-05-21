@@ -8,11 +8,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.Expression;
-import uml_parser.basics.ConstantInfo;
+import uml_parser.basics.*;
 import uml_parser.models.*;
-import uml_parser.basics.FieldInfo;
-import uml_parser.basics.MethodInfo;
-import uml_parser.basics.ParameterInfo;
 import uml_parser.properties.TypeInfo;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -77,6 +74,18 @@ public class Main {
         }
         return fieldInfoList;
     }
+    private static List<ConstructorInfo> parseConstructors(List<ConstructorDeclaration> constructors) {
+        List<ConstructorInfo> constructorInfoList = new ArrayList<>();
+        for (ConstructorDeclaration constructor : constructors) {
+            ConstructorInfo newConstructorInfo = new ConstructorInfo(constructor.getNameAsString(),
+                    constructor.getAccessSpecifier().asString(),
+                    parseParameters(constructor.getParameters())
+            );
+
+            constructorInfoList.add(newConstructorInfo);
+        }
+        return constructorInfoList;
+    }
     private static List<MethodInfo> parseMethods(List<MethodDeclaration> methods) {
         List<MethodInfo> methodInfoList = new ArrayList<>();
         for (MethodDeclaration method : methods) {
@@ -104,7 +113,7 @@ public class Main {
         }
         return parameterInfoList;
     }
-    private static List<String> parseArguments(NodeList<Expression> args) {
+    private static List<String> parseEnumArguments(NodeList<Expression> args) {
         List<String> argInfo = new ArrayList<>();
         for (Expression e : args) {
             argInfo.add(e.toString());
@@ -115,7 +124,7 @@ public class Main {
         List<ConstantInfo> constantInfoList = new ArrayList<>();
         for (EnumConstantDeclaration e : entries) {
             ConstantInfo constantInfo = new ConstantInfo(e.getNameAsString(),
-                    parseArguments(e.getArguments()));
+                    parseEnumArguments(e.getArguments()));
             constantInfoList.add(constantInfo);
         }
         return constantInfoList;
@@ -153,6 +162,7 @@ public class Main {
                 );
             } else {
                 type_ = ClassTypes.CLASS;
+                List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
                 List<String> implements_ = c.getImplementedTypes()
                         .stream()
                         .map(t -> t.getNameAsString())
@@ -164,6 +174,7 @@ public class Main {
                         type_,
                         modifiers,
                         fields,
+                        constructors,
                         methods,
                         extends_,
                         implements_,
@@ -173,7 +184,7 @@ public class Main {
         } else if (cls instanceof RecordDeclaration c) {
 
             type_ = ClassTypes.RECORD;
-
+            List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
             List<ParameterInfo> parameters = parseParameters(c.getParameters());
             List<MethodInfo> methods = parseMethods(c.getMethods());
             List<String> implements_ = c.getImplementedTypes()
@@ -188,12 +199,14 @@ public class Main {
                     modifiers,
                     parameters,
                     fields,
+                    constructors,
                     methods,
                     implements_
             );
         } else if (cls instanceof EnumDeclaration c) {
             type_ = ClassTypes.ENUM;
 
+            List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
             List<ConstantInfo> constants = parseConstants(c.getEntries());
             List<MethodInfo> methods = parseMethods(c.getMethods());
             List<String> implements_ = c.getImplementedTypes()
@@ -207,6 +220,7 @@ public class Main {
                     type_,
                     modifiers,
                     fields,
+                    constructors,
                     methods,
                     constants,
                     implements_

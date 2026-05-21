@@ -4,7 +4,6 @@ class AccessSpecifiers(Enum):
     PUBLIC = 'public'
     PRIVATE = 'private'
     PROTECTED = 'protected'
-    PACKAGE = 'package'
     PACKAGE_PRIVATE = ''
 
 class Modifiers(Enum):

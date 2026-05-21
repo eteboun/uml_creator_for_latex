@@ -16,6 +16,3 @@ base_line = r"""
     \end{tikzpicture}
 \end{document}
 """
-
-
-
