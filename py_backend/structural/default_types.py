@@ -17,10 +17,3 @@ class DefType:
             type_ = type_ + gen_str
         type_ += '[]' * self.dim
         return type_
-
-
-class ClassType(Enum):
-    CLASS = 'CLASS'
-    RECORD = 'RECORD'
-    INTERFACE = 'INTERFACE'
-    ENUM = 'ENUM'

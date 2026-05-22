@@ -1,3 +1,5 @@
+from ..convert.converter import Converter
+
 base_line = r"""
 \documentclass[a4paper]{article}
 
@@ -16,3 +18,6 @@ base_line = r"""
     \end{tikzpicture}
 \end{document}
 """
+
+c_objs = Converter.run()
+print(c_objs)

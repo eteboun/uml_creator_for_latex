@@ -11,4 +11,3 @@ class Modifiers(Enum):
     ABSTRACT = 'abstract'
     STATIC = 'static'
     SEALED = 'sealed'
-

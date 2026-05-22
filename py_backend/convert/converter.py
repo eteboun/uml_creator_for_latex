@@ -30,42 +30,46 @@ public class Queue<T> {
 
 """
 
-def run():
+class Converter:
 
-    result = subprocess.run(
-        ["java", "-jar", f"java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
-        input=java_code,
-        text=True,
-        capture_output=True
-    )
-    class_structs = json.loads(result.stdout)
-    c_objs = []
+    @staticmethod
+    def run():
 
-    for cs in class_structs:
-        cs['type_'] = t = dt.ClassType(cs['type_'])
-        cs['fields'] = ut.parse_fields(cs['fields'])
-        cs['methods'] = ut.parse_methods(cs['methods'])
+        result = subprocess.run(
+            ["java", "-jar", f"java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
+            input=java_code,
+            text=True,
+            capture_output=True
+        )
+        class_structs = json.loads(result.stdout)
+        c_objs = []
 
-        if t == dt.ClassType.CLASS:
-            cs['constructors'] = ut.parse_constructors(cs['constructors'])
-            c_obj = co.ClassObj(**cs)
+        for cs in class_structs:
+            t = cs.pop('type_', None)
+            cs['fields'] = ut.parse_fields(cs['fields'])
+            cs['methods'] = ut.parse_methods(cs['methods'])
 
-        elif t == dt.ClassType.RECORD:
-            cs['parameters'] = ut.parse_parameters(cs['parameters'])
-            cs['constructors'] = ut.parse_constructors(cs['constructors'])
-            c_obj = co.RecordObj(**cs)
+            if t == 'CLASS':
+                cs['constructors'] = ut.parse_constructors(cs['constructors'])
+                c_obj = co.ClassObj(**cs)
 
-        elif t == dt.ClassType.INTERFACE:
-            c_obj = co.InterfaceObj(**cs)
+            elif t == 'RECORD':
+                cs['parameters'] = ut.parse_parameters(cs['parameters'])
+                cs['constructors'] = ut.parse_constructors(cs['constructors'])
+                c_obj = co.RecordObj(**cs)
 
-        else:
-            cs['constants'] = ut.parse_constants(cs['constants'])
-            cs['constructors'] = ut.parse_constructors(cs['constructors'])
-            c_obj = co.EnumObj(**cs)
+            elif t == 'INTERFACE':
+                c_obj = co.InterfaceObj(**cs)
 
-        c_objs.append(c_obj)
+            elif t == 'ENUM':
+                cs['constants'] = ut.parse_constants(cs['constants'])
+                cs['constructors'] = ut.parse_constructors(cs['constructors'])
+                c_obj = co.EnumObj(**cs)
+            else:
+                raise TypeError('Invalid class type')
+            c_objs.append(c_obj)
 
-    return c_objs
+        return c_objs
 
 
 
