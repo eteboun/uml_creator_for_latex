@@ -1,5 +1,12 @@
-from enum import Enum
 from dataclasses import dataclass, field
+from . import class_objects as co
+
+STEREOTYPES = {
+    co.ClassObj: None,
+    co.EnumObj: '<< Enum >>',
+    co.RecordObj: '<< Record >>',
+    co.InterfaceObj: '<< Interface >>',
+}
 
 @dataclass
 class DefType:
@@ -17,3 +24,6 @@ class DefType:
             type_ = type_ + gen_str
         type_ += '[]' * self.dim
         return type_
+
+
+

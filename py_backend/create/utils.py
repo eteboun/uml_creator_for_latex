@@ -90,15 +90,16 @@ def constant_to_text(constant):
     return f'{constant.name}{tuple(constant.args) if constant.args else ''}'
 
 def create_row_text(module):
-    if isinstance(module, Field):
-        return field_to_text(module)
-    elif isinstance(module, Method):
-        return method_to_text(module)
-    elif isinstance(module, Constant):
-        return constant_to_text(module)
-    elif isinstance(module, Parameter):
-        return parameter_to_text(module)
-    elif isinstance(module, Constructor):
-        return constructor_to_text(module)
-    else:
-        raise TypeError('Unknown module type')
+    mapping = {
+        Field: field_to_text,
+        Constructor: constructor_to_text,
+        Method: method_to_text,
+        Parameter: parameter_to_text,
+        Constant: constant_to_text,
+    }
+
+    for module_type, func in mapping.items():
+        if isinstance(module, module_type):
+            return func(module)
+
+    raise TypeError('Unknown module type')
