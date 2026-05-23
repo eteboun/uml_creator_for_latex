@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
-from . import class_objects as co
+from . import class_models as cmodels
 
 STEREOTYPES = {
-    co.ClassObj: None,
-    co.EnumObj: '<< Enum >>',
-    co.RecordObj: '<< Record >>',
-    co.InterfaceObj: '<< Interface >>',
+    cmodels.ClassObj: None,
+    cmodels.EnumObj: '<< Enum >>',
+    cmodels.RecordObj: '<< Record >>',
+    cmodels.InterfaceObj: '<< Interface >>',
 }
 
 @dataclass

@@ -1,8 +1,7 @@
-package uml_parser.basics;
-
-import java.util.List;
+package uml_parser.modules;
 
 public record FieldInfo(String name,
                         String type_,
                         String accessSpecifier,
-                        List<String> modifiers) {}
+                        boolean isFinal,
+                        boolean isStatic) {}

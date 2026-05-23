@@ -1,4 +1,4 @@
-from py_backend.structural import default_types as dt, class_modules as cm, modifiers as mo
+from py_backend.structural import default_types as dt, class_modules as cmodels, modifiers as mo
 from dataclasses import dataclass, field
 import re
 
@@ -62,7 +62,7 @@ def parse_fields(fields):
     for f in fields:
         f['type_'] = parse_type(ParserTracker(text=f['type_']))
         f['accessSpecifier'] = mo.AccessSpecifiers(f['accessSpecifier'])
-        field_list.append(cm.Field(**f))
+        field_list.append(cmodels.Field(**f))
 
     return field_list
 
@@ -73,7 +73,7 @@ def parse_methods(methods):
         m['type_'] = parse_type(ParserTracker(text=m['type_']))
         m['parameters'] = parse_parameters(m['parameters'])
         m['accessSpecifier'] = mo.AccessSpecifiers(m['accessSpecifier'])
-        method_list.append(cm.Method(**m))
+        method_list.append(cmodels.Method(**m))
 
     return method_list
 
@@ -82,7 +82,7 @@ def parse_parameters(parameters):
 
     for p in parameters:
         p['type_'] = parse_type(ParserTracker(text=p['type_']))
-        parameter_list.append(cm.Parameter(**p))
+        parameter_list.append(cmodels.Parameter(**p))
 
     return parameter_list
 
@@ -90,7 +90,7 @@ def parse_constants(constants):
     constant_list = []
 
     for c in constants:
-        constant_list.append(cm.Constant(**c))
+        constant_list.append(cmodels.Constant(**c))
 
     return constant_list
 
@@ -99,6 +99,6 @@ def parse_constructors(constructors):
 
     for c in constructors:
         c['accessSpecifier'] = mo.AccessSpecifiers(c['accessSpecifier'])
-        constructor_list.append(cm.Constructor(**c))
+        constructor_list.append(cmodels.Constructor(**c))
 
     return constructor_list

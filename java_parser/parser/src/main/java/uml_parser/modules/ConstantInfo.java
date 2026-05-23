@@ -1,4 +1,4 @@
-package uml_parser.basics;
+package uml_parser.modules;
 
 import java.util.List;
 

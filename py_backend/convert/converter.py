@@ -1,5 +1,4 @@
-from py_backend.structural import class_objects as co
-from py_backend.structural import default_types as dt
+from py_backend.structural import class_models as cmodels
 from . import utils as ut
 import subprocess
 import json
@@ -42,7 +41,7 @@ class Converter:
             capture_output=True
         )
         class_structs = json.loads(result.stdout)
-        c_objs = []
+        c_models = []
 
         for cs in class_structs:
             t = cs.pop('type_', None)
@@ -51,25 +50,22 @@ class Converter:
 
             if t == 'CLASS':
                 cs['constructors'] = ut.parse_constructors(cs['constructors'])
-                c_obj = co.ClassObj(**cs)
+                c_model = cmodels.ClassObj(**cs)
 
             elif t == 'RECORD':
                 cs['parameters'] = ut.parse_parameters(cs['parameters'])
                 cs['constructors'] = ut.parse_constructors(cs['constructors'])
-                c_obj = co.RecordObj(**cs)
+                c_model = cmodels.RecordObj(**cs)
 
             elif t == 'INTERFACE':
-                c_obj = co.InterfaceObj(**cs)
+                c_model = cmodels.InterfaceObj(**cs)
 
             elif t == 'ENUM':
                 cs['constants'] = ut.parse_constants(cs['constants'])
                 cs['constructors'] = ut.parse_constructors(cs['constructors'])
-                c_obj = co.EnumObj(**cs)
+                c_model = cmodels.EnumObj(**cs)
             else:
                 raise TypeError('Invalid class type')
-            c_objs.append(c_obj)
+            c_models.append(c_model)
 
-        return c_objs
-
-
-
+        return c_models

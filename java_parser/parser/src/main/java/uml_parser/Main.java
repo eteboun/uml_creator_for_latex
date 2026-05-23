@@ -8,9 +8,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.Expression;
-import uml_parser.basics.*;
+import uml_parser.modules.*;
 import uml_parser.models.*;
-import uml_parser.properties.TypeInfo;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
@@ -44,7 +43,7 @@ public class Main {
         List<RecordDeclaration> records = cu.findAll(RecordDeclaration.class);
         List<EnumDeclaration> enums = cu.findAll(EnumDeclaration.class);
 
-        List<TypeInfo> createdClasses = new ArrayList<>();
+        List<DefaultBase> createdClasses = new ArrayList<>();
 
         // Create class objects
         for (ClassOrInterfaceDeclaration cls : classes) createdClasses.add(createClass(cls));
@@ -65,10 +64,8 @@ public class Main {
                 FieldInfo newFieldInfo = new FieldInfo(vd.getNameAsString(),
                         vd.getTypeAsString(),
                         field.getAccessSpecifier().asString(),
-                        field.getModifiers()
-                                .stream()
-                                .map(m -> m.getKeyword().asString())
-                                .toList());
+                        field.isFinal(),
+                        field.isStatic());
                 fieldInfoList.add(newFieldInfo);
             }
         }
@@ -92,11 +89,10 @@ public class Main {
             MethodInfo newMethodInfo = new MethodInfo(method.getNameAsString(),
                     method.getTypeAsString(),
                     method.getAccessSpecifier().asString(),
-                    method.getModifiers()
-                            .stream()
-                            .map(m -> m.getKeyword().asString())
-                            .toList(),
-                    parseParameters(method.getParameters())
+                    parseParameters(method.getParameters()),
+                    method.isFinal(),
+                    method.isStatic(),
+                    method.isAbstract()
                     );
 
             methodInfoList.add(newMethodInfo);
@@ -129,11 +125,10 @@ public class Main {
         }
         return constantInfoList;
     }
-    private static TypeInfo createClass(TypeDeclaration<?> cls) {
+    private static DefaultBase createClass(TypeDeclaration<?> cls) {
         String name = cls.getNameAsString();
         String accessSpecifier =  cls.getAccessSpecifier().asString();
         ClassTypes type_;
-        List<String> modifiers = cls.getModifiers().stream().map(m -> m.getKeyword().asString()).toList();
 
         List<FieldInfo> fields = parseFields(cls.getFields());
 
@@ -154,7 +149,6 @@ public class Main {
                         name,
                         accessSpecifier,
                         type_,
-                        modifiers,
                         fields,
                         methods,
                         extends_,
@@ -167,12 +161,15 @@ public class Main {
                         .stream()
                         .map(t -> t.getNameAsString())
                         .toList();
+                boolean isFinal = c.isFinal();
+                boolean isAbstract = c.isAbstract();
 
                 return new DefaultClass(
                         name,
                         accessSpecifier,
                         type_,
-                        modifiers,
+                        isFinal,
+                        isAbstract,
                         fields,
                         constructors,
                         methods,
@@ -196,7 +193,6 @@ public class Main {
                     name,
                     accessSpecifier,
                     type_,
-                    modifiers,
                     parameters,
                     fields,
                     constructors,
@@ -218,7 +214,6 @@ public class Main {
                     name,
                     accessSpecifier,
                     type_,
-                    modifiers,
                     fields,
                     constructors,
                     methods,

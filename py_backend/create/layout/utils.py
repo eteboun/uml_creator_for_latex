@@ -17,6 +17,7 @@ def text_wrapper(text, threshold=50):
         ',': 20,
         '(': 10,
         '<': 8,
+        '{': 4
     }
 
     new_text = []
@@ -75,19 +76,53 @@ def as_to_text(accessSpecifier):
         return '~'
 
 def field_to_text(field):
-    return f'{as_to_text(field.accessSpecifier)} {field.name}: {field.type_.flatten()}'
+
+    if field.isStatic:
+        end = ' {static}'
+    else:
+        end = ''
+
+    return (f'{as_to_text(field.accessSpecifier)} {field.name}:'
+            f' {field.type_.flatten()}{end}')
 
 def constructor_to_text(constructor):
-    return f'{as_to_text(constructor.accessSpecifier)} {constructor.name}({', '.join([parameter_to_text(p) for p in constructor.parameters])})'
+    return (f'{as_to_text(constructor.accessSpecifier)} {constructor.name}'
+            f'({', '.join([parameter_to_text(p) for p in constructor.parameters])})')
 
 def method_to_text(method):
-    return f'{as_to_text(method.accessSpecifier)} {method.name}({', '.join([parameter_to_text(p) for p in method.parameters])}): {method.type_.flatten()}'
+    mods = []
+
+    if method.isStatic:
+        mods.append('static')
+
+    if method.isAbstract:
+        mods.append('abstract')
+
+    end = f" {{{', '.join(mods)}}}" if mods else ''
+
+    parameters = ', '.join(
+        parameter_to_text(p)
+        for p in method.parameters
+    )
+
+    return (f'{as_to_text(method.accessSpecifier)} {method.name}'
+            f'({parameters}):'
+            f' {method.type_.flatten()}{end}')
 
 def parameter_to_text(parameter):
-    return f'{parameter.name}: {parameter.type_.flatten()}'
+    return (f'{parameter.name}:'
+            f' {parameter.type_.flatten()}')
 
 def constant_to_text(constant):
     return f'{constant.name}{tuple(constant.args) if constant.args else ''}'
+
+def title_to_text(cmodel):
+    if cmodel.isAbstract:
+        end = ' {abstract}'
+    else:
+        end = ''
+
+    return f'{cmodel.name}{end}'
 
 def create_row_text(module):
     mapping = {

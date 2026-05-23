@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 class Base:
     name: str
     accessSpecifier: m.AccessSpecifiers = field(default=m.AccessSpecifiers.PACKAGE_PRIVATE)
-    modifiers: list = field(default_factory=list)
 
     fields: list = field(default_factory=list)
     methods: list = field(default_factory=list)
@@ -16,6 +15,9 @@ class ClassObj(Base):
     implements_: list = field(default_factory=list)
     permits_: list = field(default_factory=list)
     constructors: list = field(default_factory=list)
+
+    isFinal: bool = False
+    isAbstract: bool = False
 
 @dataclass
 class InterfaceObj(Base):

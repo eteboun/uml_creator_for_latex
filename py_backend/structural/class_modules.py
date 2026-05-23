@@ -7,7 +7,9 @@ class Field:
     name: str
     type_: dt.DefType
     accessSpecifier: m.AccessSpecifiers
-    modifiers: list[m.Modifiers] = field(default_factory=list)
+
+    isFinal: bool = False
+    isStatic: bool = False
 
 @dataclass
 class Parameter:
@@ -30,5 +32,8 @@ class Method:
     name: str
     accessSpecifier: m.AccessSpecifiers
     type_: dt.DefType
-    modifiers: list[m.Modifiers] = field(default_factory=list)
     parameters: list[Parameter] = field(default_factory=list)
+
+    isFinal: bool = False
+    isStatic: bool = False
+    isAbstract: bool = False

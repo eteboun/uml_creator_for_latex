@@ -10,4 +10,3 @@ class Modifiers(Enum):
     FINAL = 'final'
     ABSTRACT = 'abstract'
     STATIC = 'static'
-    SEALED = 'sealed'
