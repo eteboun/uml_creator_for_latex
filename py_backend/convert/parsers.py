@@ -99,6 +99,7 @@ def parse_constructors(constructors):
 
     for c in constructors:
         c['accessSpecifier'] = mo.AccessSpecifiers(c['accessSpecifier'])
+        c['parameters'] = parse_parameters(c['parameters'])
         constructor_list.append(cmodels.Constructor(**c))
 
     return constructor_list

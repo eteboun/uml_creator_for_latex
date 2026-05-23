@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from .config import UMLConfig
+from py_backend.create.layout.config import UMLConfig
 from py_backend.structural import class_models as co, default_types as dt
-from . import utils as ut
+from py_backend.create.layout import textual as t
 from .rows import Row
 from .sections import Section
 
@@ -29,14 +29,14 @@ class UML:
 
         self.class_to_rows()
 
-    def get_row_content(self, text):
-        lines = ut.text_wrapper(text=text, threshold=self.wrapper_threshold)
+    def get_row_lines(self, text):
+        lines = t.text_wrapper(text=text, threshold=self.wrapper_threshold)
         return lines
 
-    def get_row_height(self, content):
-        return (len(content) *
-         self.config.baseline_skip +
-         2 * self.config.y_margin)
+    def get_row_height(self, lines):
+
+        return (len(lines) * self.config.font_size +
+                2 * self.config.y_margin + self.config.font_size)
 
     def add_to_module_sections(self):
         mapping = {
@@ -55,33 +55,39 @@ class UML:
             target_section = Section(name=attr_name, config=self.config.sections[target_config])
             items = reversed(getattr(self.c_model, attr_name))
             for item in items:
-                row_text = ut.create_row_text(module=item)
+                row_text = t.create_row_text(module=item)
 
-                row_content = self.get_row_content(row_text)
-                row_height = self.get_row_height(row_content)
+                row_lines = self.get_row_lines(row_text)
+                row_content = '\\\\\n'.join(row_lines)
+                row_height = self.get_row_height(row_lines)
 
                 new_row = Row(
                     height=row_height,
                     anchor="south west",
-                    content=row_content
+                    align="left",
+                    content=row_content,
+                    lines=len(row_lines),
                 )
                 target_section.rows.append(new_row)
             self.sections.append(target_section)
 
     def add_to_title_section(self, stereotype):
-        title_text = ut.title_to_text(self.c_model)
-        t_content = self.get_row_content(title_text)
+        title_text = t.title_to_text(self.c_model)
+        t_lines = self.get_row_lines(title_text)
 
         if stereotype is not None:
-            s_content = self.get_row_content(stereotype)
-            t_content = s_content + t_content
+            s_lines = self.get_row_lines(stereotype)
+            t_lines = s_lines + t_lines
 
-        t_height = self.get_row_height(t_content)
+        t_height = self.get_row_height(t_lines)
+        t_content = '\\\\'.join(t_lines)
 
         title_row = Row(
             height=t_height,
             anchor="south",
-            content=t_content
+            align="center",
+            content=t_content,
+            lines=len(t_lines),
         )
 
         title_section = Section(name="title", config=self.config.sections['title_section_config'])
@@ -91,17 +97,19 @@ class UML:
 
     def create_sections(self):
 
-        current_y = self.config.init_y
+        x = self.config.init_x
+        y = self.config.init_y
+
         for s in self.sections:
-            s.position = (self.config.init_x, current_y)
+            s.position = (x, y)
 
             for row in s.rows:
-                row.position = (self.config.init_x, current_y)
-                current_y += row.height
+                row.position = (x + self.config.width / 2 - self.config.x_margin, y) if s.name == 'title' else (x, y)
+                y += row.height
 
-            s.height = current_y - s.position[1]
+            s.height = y - s.position[1]
 
-        self.height = current_y - self.config.init_y
+        self.height = y - self.config.init_y
 
     def class_to_rows(self):
         self.add_to_module_sections()

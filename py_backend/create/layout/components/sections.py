@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from .config import SectionConfig
+from py_backend.create.layout.config import SectionConfig
 from .rows import Row
 
 @dataclass

@@ -1,8 +1,8 @@
 {
-  "font_size": 0.3,
-  "baseline_skip": 0.5,
+  "font_size": 0.6,
+  "baseline_skip": 0,
 
-  "width": 5,
+  "width": 15,
 
   "x_margin": 0.4,
   "y_margin": 0.3,
@@ -13,7 +13,7 @@
   "sections": {
 
     "title_section_config": {
-      "background_color": "blue",
+      "background_color": "blue!70",
       "text_color": "yellow"
     },
 
