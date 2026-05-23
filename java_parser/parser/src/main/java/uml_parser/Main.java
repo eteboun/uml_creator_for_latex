@@ -5,18 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import uml_parser.modules.*;
 import uml_parser.models.*;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
-    public static void main(String[] args) throws JsonProcessingException {
+     static void main() throws JsonProcessingException {
 
         Locale.setDefault(Locale.ROOT);
 
@@ -132,94 +135,108 @@ public class Main {
 
         List<FieldInfo> fields = parseFields(cls.getFields());
 
-        if (cls instanceof ClassOrInterfaceDeclaration c) {
-            List<MethodInfo> methods = parseMethods(c.getMethods());
-            List<String> extends_ = c.getExtendedTypes()
-                    .stream()
-                    .map(t -> t.getNameAsString())
-                    .toList();
+        switch (cls) {
+            case ClassOrInterfaceDeclaration c -> {
+                if (!c.getTypeParameters().isEmpty()) {
+                    name += "<" +
+                            c.getTypeParameters()
+                                    .stream()
+                                    .map(Node::toString)
+                                    .collect(Collectors.joining(", "))
+                            + ">";
+                }
+                List<MethodInfo> methods = parseMethods(c.getMethods());
+                List<String> extends_ = c.getExtendedTypes()
+                        .stream()
+                        .map(NodeWithSimpleName::getNameAsString)
+                        .toList();
 
-            List<String> permits_ = c.getPermittedTypes()
-                    .stream()
-                    .map(t -> t.getNameAsString())
-                    .toList();
-            if (c.isInterface()) {
-                type_ = ClassTypes.INTERFACE;
-                return new DefaultInterface(
-                        name,
-                        accessSpecifier,
-                        type_,
-                        fields,
-                        methods,
-                        extends_,
-                        permits_
-                );
-            } else {
-                type_ = ClassTypes.CLASS;
+                List<String> permits_ = c.getPermittedTypes()
+                        .stream()
+                        .map(NodeWithSimpleName::getNameAsString)
+                        .toList();
+                if (c.isInterface()) {
+                    type_ = ClassTypes.INTERFACE;
+                    return new DefaultInterface(
+                            name,
+                            accessSpecifier,
+                            type_,
+                            fields,
+                            methods,
+                            extends_,
+                            permits_
+                    );
+                } else {
+                    type_ = ClassTypes.CLASS;
+                    List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
+                    List<String> implements_ = c.getImplementedTypes()
+                            .stream()
+                            .map(NodeWithSimpleName::getNameAsString)
+                            .toList();
+                    boolean isFinal = c.isFinal();
+                    boolean isAbstract = c.isAbstract();
+
+                    return new DefaultClass(
+                            name,
+                            accessSpecifier,
+                            type_,
+                            isFinal,
+                            isAbstract,
+                            fields,
+                            constructors,
+                            methods,
+                            extends_,
+                            implements_,
+                            permits_
+                    );
+                }
+            }
+            case RecordDeclaration c -> {
+
+                type_ = ClassTypes.RECORD;
                 List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
+                List<ParameterInfo> parameters = parseParameters(c.getParameters());
+                List<MethodInfo> methods = parseMethods(c.getMethods());
                 List<String> implements_ = c.getImplementedTypes()
                         .stream()
-                        .map(t -> t.getNameAsString())
+                        .map(NodeWithSimpleName::getNameAsString)
                         .toList();
-                boolean isFinal = c.isFinal();
-                boolean isAbstract = c.isAbstract();
 
-                return new DefaultClass(
+                return new DefaultRecord(
                         name,
                         accessSpecifier,
                         type_,
-                        isFinal,
-                        isAbstract,
+                        parameters,
                         fields,
                         constructors,
                         methods,
-                        extends_,
-                        implements_,
-                        permits_
+                        implements_
                 );
             }
-        } else if (cls instanceof RecordDeclaration c) {
+            case EnumDeclaration c -> {
+                type_ = ClassTypes.ENUM;
 
-            type_ = ClassTypes.RECORD;
-            List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
-            List<ParameterInfo> parameters = parseParameters(c.getParameters());
-            List<MethodInfo> methods = parseMethods(c.getMethods());
-            List<String> implements_ = c.getImplementedTypes()
-                    .stream()
-                    .map(t -> t.getNameAsString())
-                    .toList();
+                List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
+                List<ConstantInfo> constants = parseConstants(c.getEntries());
+                List<MethodInfo> methods = parseMethods(c.getMethods());
+                List<String> implements_ = c.getImplementedTypes()
+                        .stream()
+                        .map(NodeWithSimpleName::getNameAsString)
+                        .toList();
 
-            return new DefaultRecord(
-                    name,
-                    accessSpecifier,
-                    type_,
-                    parameters,
-                    fields,
-                    constructors,
-                    methods,
-                    implements_
-            );
-        } else if (cls instanceof EnumDeclaration c) {
-            type_ = ClassTypes.ENUM;
-
-            List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
-            List<ConstantInfo> constants = parseConstants(c.getEntries());
-            List<MethodInfo> methods = parseMethods(c.getMethods());
-            List<String> implements_ = c.getImplementedTypes()
-                    .stream()
-                    .map(t -> t.getNameAsString())
-                    .toList();
-
-            return new DefaultEnum(
-                    name,
-                    accessSpecifier,
-                    type_,
-                    fields,
-                    constructors,
-                    methods,
-                    constants,
-                    implements_
-            );
+                return new DefaultEnum(
+                        name,
+                        accessSpecifier,
+                        type_,
+                        fields,
+                        constructors,
+                        methods,
+                        constants,
+                        implements_
+                );
+            }
+            default -> {
+            }
         }
 
         return null;

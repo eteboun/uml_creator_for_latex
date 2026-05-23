@@ -27,6 +27,8 @@ class UML:
         char_width = 0.6 * self.config.font_size
         self.wrapper_threshold = int((self.config.width - 2 * self.config.x_margin) / char_width)
 
+        self.class_to_rows()
+
     def get_row_content(self, text):
         lines = ut.text_wrapper(text=text, threshold=self.wrapper_threshold)
         return lines
@@ -46,10 +48,11 @@ class UML:
         }
 
         for attr_name, target_config in mapping.items():
+
             if not hasattr(self.c_model, attr_name):
                 continue
 
-            target_section = Section(name=attr_name, config=getattr(self.config, target_config))
+            target_section = Section(name=attr_name, config=self.config.sections[target_config])
             items = reversed(getattr(self.c_model, attr_name))
             for item in items:
                 row_text = ut.create_row_text(module=item)
@@ -59,7 +62,7 @@ class UML:
 
                 new_row = Row(
                     height=row_height,
-                    anchor="west",
+                    anchor="south west",
                     content=row_content
                 )
                 target_section.rows.append(new_row)
@@ -77,16 +80,16 @@ class UML:
 
         title_row = Row(
             height=t_height,
-            anchor="center",
+            anchor="south",
             content=t_content
         )
 
-        title_section = Section(name="title", config=self.config.title_section_config)
+        title_section = Section(name="title", config=self.config.sections['title_section_config'])
         title_section.rows.append(title_row)
 
         self.sections.append(title_section)
 
-    def set_coordinates(self):
+    def create_sections(self):
 
         current_y = self.config.init_y
         for s in self.sections:
@@ -106,4 +109,4 @@ class UML:
         stereotype = dt.STEREOTYPES[type(self.c_model)]
         self.add_to_title_section(stereotype)
 
-        self.set_coordinates()
+        self.create_sections()

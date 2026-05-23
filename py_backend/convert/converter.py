@@ -26,7 +26,6 @@ public class Queue<T> {
         return item;
     }
 }
-
 """
 
 class Converter:

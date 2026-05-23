@@ -1,0 +1,45 @@
+{
+  "font_size": 0.3,
+  "baseline_skip": 0.5,
+
+  "width": 5,
+
+  "x_margin": 0.4,
+  "y_margin": 0.3,
+
+  "init_x": 1,
+  "init_y": 1,
+
+  "sections": {
+
+    "title_section_config": {
+      "background_color": "blue",
+      "text_color": "yellow"
+    },
+
+    "field_section_config": {
+      "background_color": "blue!20",
+      "text_color": "black"
+    },
+
+    "method_section_config": {
+      "background_color": "blue!20",
+      "text_color": "black"
+    },
+
+    "constant_section_config": {
+      "background_color": "blue!20",
+      "text_color": "black"
+    },
+
+    "parameter_section_config": {
+      "background_color": "blue!20",
+      "text_color": "black"
+    },
+
+    "constructor_section_config": {
+      "background_color": "blue!20",
+      "text_color": "black"
+    }
+  }
+}

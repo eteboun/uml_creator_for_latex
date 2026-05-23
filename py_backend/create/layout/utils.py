@@ -67,13 +67,13 @@ def text_wrapper(text, threshold=50):
 
 def as_to_text(accessSpecifier):
     if accessSpecifier == As.PUBLIC:
-        return '+'
+        return '+ '
     elif accessSpecifier == As.PRIVATE:
-        return '-'
+        return '- '
     elif accessSpecifier == As.PROTECTED:
-        return '#'
+        return '# '
     else:
-        return '~'
+        return ''
 
 def field_to_text(field):
 
@@ -82,11 +82,11 @@ def field_to_text(field):
     else:
         end = ''
 
-    return (f'{as_to_text(field.accessSpecifier)} {field.name}:'
+    return (f'{as_to_text(field.accessSpecifier)}{field.name}:'
             f' {field.type_.flatten()}{end}')
 
 def constructor_to_text(constructor):
-    return (f'{as_to_text(constructor.accessSpecifier)} {constructor.name}'
+    return (f'{as_to_text(constructor.accessSpecifier)}{constructor.name}'
             f'({', '.join([parameter_to_text(p) for p in constructor.parameters])})')
 
 def method_to_text(method):
@@ -105,7 +105,7 @@ def method_to_text(method):
         for p in method.parameters
     )
 
-    return (f'{as_to_text(method.accessSpecifier)} {method.name}'
+    return (f'{as_to_text(method.accessSpecifier)}{method.name}'
             f'({parameters}):'
             f' {method.type_.flatten()}{end}')
 

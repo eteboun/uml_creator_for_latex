@@ -1,4 +1,6 @@
 from ..convert.converter import Converter
+from .layout import uml, config
+from . import utils as ut
 
 base_line = r"""
 \documentclass[a4paper]{article}
@@ -19,5 +21,8 @@ base_line = r"""
 \end{document}
 """
 
-c_objs = Converter.run()
-print(c_objs)
+c_model = Converter.run()[0]
+cfg = config.create_uml_config('.\\py_backend\\config.json')
+
+new_uml = uml.UML(config=cfg, c_model=c_model)
+print(ut.generate_latex_uml(new_uml))
