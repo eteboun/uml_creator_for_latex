@@ -2,10 +2,10 @@
   "font_size": 0.6,
   "baseline_skip": 0,
 
-  "width": 15,
+  "width": 7,
 
   "x_margin": 0.4,
-  "y_margin": 0.3,
+  "y_margin": 0.4,
 
   "init_x": 1,
   "init_y": 1,

@@ -14,10 +14,8 @@ def generate_latex_uml(uml):
             anchor = r.anchor
             color = s.config.text_color
 
-            x = r.position[0] + uml.config.x_margin
-            y = (r.position[1] +
-                 (r.lines - 1) * uml.config.font_size +
-                 uml.config.y_margin)
+            x = r.position[0]
+            y = r.position[1]
 
             latex_pieces.append(generate_latex_node(at_=(x, y),
                                                     anchor=anchor,
@@ -27,6 +25,7 @@ def generate_latex_uml(uml):
                                                     color=color,
                                                     text=r.content))
 
+    latex_pieces.reverse()
     return '\n'.join(latex_pieces)
 
 

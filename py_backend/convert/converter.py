@@ -4,87 +4,26 @@ import subprocess
 import json
 
 java_code = """
+import java.util.ArrayList;
 
-public abstract class Enemy {
-    protected Position pos;
-    protected Game.Direction direction;
-    protected BFSPathFinder finder;
-    protected double speed = 0.1;
+public class Queue<T> {
+    final private ArrayList<T> list = new ArrayList<>();
 
-    protected double visualRow;
-    protected double visualCol;
+    Queue() {}
 
-    public Enemy(Position pos){
-        this.pos = pos;
-        this.direction = Game.Direction.NONE;
-        this.visualRow = pos.getRow();
-        this.visualCol = pos.getCol();
-        this.finder = new BFSPathFinder();
+    public boolean isEmpty() {
+        return list.isEmpty();
     }
-
-    public double getVisualRow() {
-        return visualRow;
+    public int size() {
+        return list.size();
     }
-
-    public double getVisualCol() {
-        return visualCol;
+    public void enqueue(T item) {
+        list.add(item);
     }
-
-    public Game.Direction getDirection() {
-        return direction;
-    }
-
-    public abstract Position selectTarget(Player player, MapData mapData);
-
-    protected Game.Direction getDirectionFromPositions(Position from, Position to) {
-        int dRow = to.getRow() - from.getRow();
-        int dCol = to.getCol() - from.getCol();
-
-        if (dRow == 0 && dCol == 0) return Game.Direction.NONE;
-        else if (dRow == 0 && dCol == 1) return Game.Direction.RIGHT;
-        else if (dRow == 0 && dCol == -1) return Game.Direction.LEFT;
-        else if (dRow == 1 && dCol == 0) return Game.Direction.DOWN;
-        else if (dRow == -1 && dCol == 0) return Game.Direction.UP;
-        else return Game.Direction.NONE;
-    }
-
-    public void move(Player player, MapData mapData) {
-        Position target = selectTarget(player, mapData);
-        if (target == null) return;
-
-        ArrayList<Position> path = finder.getFullShortestPath(pos, target, mapData);
-        if (path == null) return;
-
-        Position nextPos = path.size() == 1 ? path.get(0) : path.get(1);
-        Game.Direction dir = getDirectionFromPositions(pos, nextPos);
-
-        boolean isInASquare = Math.abs(visualRow - pos.getRow()) < 0.1
-                && Math.abs(visualCol - pos.getCol()) < 0.1;
-        if (isInASquare) {
-            if (dir != direction) {
-                visualRow = pos.getRow();
-                visualCol = pos.getCol();
-            }
-            setDirection(dir);
-        }
-
-        double rowStep = speed * direction.getDRow();
-        double colStep = speed * direction.getDCol();
-
-        visualRow += rowStep;
-        visualCol += colStep;
-    }
-
-    public void setDirection(Game.Direction direction) {
-        this.direction = direction;
-    }
-
-    public void setPos(Position pos) {
-        this.pos = pos;
-    }
-
-    public void reset(MapData mapData) {
-        direction = Game.Direction.NONE;
+    public T dequeue() {
+        T item = list.getFirst();
+        list.removeFirst();
+        return item;
     }
 }
 

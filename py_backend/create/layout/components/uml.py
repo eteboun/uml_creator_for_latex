@@ -34,8 +34,7 @@ class UML:
         return lines
 
     def get_row_height(self, lines):
-
-        return (len(lines) * self.config.font_size +
+        return (0.3 * len(lines) * self.config.font_size +
                 2 * self.config.y_margin + self.config.font_size)
 
     def add_to_module_sections(self):
@@ -63,7 +62,7 @@ class UML:
 
                 new_row = Row(
                     height=row_height,
-                    anchor="south west",
+                    anchor="west",
                     align="left",
                     content=row_content,
                     lines=len(row_lines),
@@ -84,7 +83,7 @@ class UML:
 
         title_row = Row(
             height=t_height,
-            anchor="south",
+            anchor="center",
             align="center",
             content=t_content,
             lines=len(t_lines),
@@ -97,19 +96,22 @@ class UML:
 
     def create_sections(self):
 
-        x = self.config.init_x
-        y = self.config.init_y
+        sec_x = self.config.init_x
+        sec_y = self.config.init_y
 
         for s in self.sections:
-            s.position = (x, y)
+            s.position = (sec_x, sec_y)
 
             for row in s.rows:
-                row.position = (x + self.config.width / 2 - self.config.x_margin, y) if s.name == 'title' else (x, y)
-                y += row.height
+                row_x = sec_x + self.config.x_margin if s.name != 'title' else sec_x + self.config.width / 2
+                row_y = sec_y + row.height / 2
 
-            s.height = y - s.position[1]
+                row.position = (row_x, row_y)
+                sec_y += row.height
 
-        self.height = y - self.config.init_y
+            s.height = sec_y - s.position[1]
+
+        self.height = sec_y - self.config.init_y
 
     def class_to_rows(self):
         self.add_to_module_sections()
