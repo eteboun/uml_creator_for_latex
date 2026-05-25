@@ -28,6 +28,9 @@ class SectionConfig:
     def from_dict(cls, d):
         return cls(**d)
 
+    def as_dict(self):
+        return self.__dict__.copy()
+
 @dataclass
 class UMLConfig:
     font_size: float
@@ -95,6 +98,11 @@ class UMLConfig:
             d["sections"][section_name] = SectionConfig.from_dict(d['sections'][section_name])
 
         return UMLConfig(**d)
+
+    def as_dict(self):
+        d = self.__dict__.copy()
+        d['sections'] = {s_name: s_config.as_dict for s_name, s_config in self.sections.items()}
+        return d
 
 def create_uml_config(addr):
     with open(addr, "r") as f:

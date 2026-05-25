@@ -1,41 +1,15 @@
 from py_backend.structural import class_models as cmodels
-from . import parsers as p
+from py_backend.convert import parsers as p
 import subprocess
 import json
-
-java_code = """
-import java.util.ArrayList;
-
-public class Queue<T> {
-    final private ArrayList<T> list = new ArrayList<>();
-
-    Queue() {}
-
-    public boolean isEmpty() {
-        return list.isEmpty();
-    }
-    public int size() {
-        return list.size();
-    }
-    public void enqueue(T item) {
-        list.add(item);
-    }
-    public T dequeue() {
-        T item = list.getFirst();
-        list.removeFirst();
-        return item;
-    }
-}
-
-"""
 
 class Converter:
 
     @staticmethod
-    def run():
+    def run(java_code):
 
         result = subprocess.run(
-            ["java", "-jar", f"java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
+            ["java", "-jar", f"..\\java_parser\\parser\\target\\parser-1.0-SNAPSHOT.jar"],
             input=java_code,
             text=True,
             capture_output=True

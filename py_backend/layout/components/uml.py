@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from py_backend.create.layout.config import UMLConfig
-from py_backend.structural import class_models as co, default_types as dt
-from py_backend.create.layout import textual as t
+from py_backend.layout.config import UMLConfig
+from py_backend.structural import class_models as cm, default_types as dt
+from .. import textual as t
 from .rows import Row
 from .sections import Section
 
@@ -9,19 +9,17 @@ from .sections import Section
 class UML:
 
     config: UMLConfig
-    c_model: co.Base
+    c_model: cm.Base
 
     wrapper_threshold: int = field(init=False)
-    height: float = field(init=False)
-
     sections: list[Section] = field(default_factory=list, init=False)
 
     def __post_init__(self):
 
-        if type(self.c_model) is co.Base:
+        if type(self.c_model) is cm.Base:
             raise TypeError("c_model cannot be Base directly")
 
-        if not isinstance(self.c_model, co.Base):
+        if not isinstance(self.c_model, cm.Base):
             raise TypeError("c_model must be a subclass instance of Base")
 
         char_width = 0.6 * self.config.font_size
@@ -34,7 +32,8 @@ class UML:
         return lines
 
     def get_row_height(self, lines):
-        return (0.3 * len(lines) * self.config.font_size +
+        return ((len(lines) - 1) *
+                self.config.baseline_skip +
                 2 * self.config.y_margin + self.config.font_size)
 
     def add_to_module_sections(self):
@@ -111,8 +110,6 @@ class UML:
 
             s.height = sec_y - s.position[1]
 
-        self.height = sec_y - self.config.init_y
-
     def class_to_rows(self):
         self.add_to_module_sections()
 
@@ -120,3 +117,8 @@ class UML:
         self.add_to_title_section(stereotype)
 
         self.create_sections()
+
+    def as_dict(self):
+        return {
+            'sections': [s.as_dict() for s in self.sections],
+        }

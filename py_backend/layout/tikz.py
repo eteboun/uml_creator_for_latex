@@ -1,14 +1,7 @@
-def generate_latex_uml(uml):
+def generate_tikz_uml(uml):
     latex_pieces = []
 
     for s in uml.sections:
-        from_ = s.position
-        to_ = (s.position[0] + uml.config.width, s.position[1] + s.height)
-        color = s.config.background_color
-
-        latex_pieces.append(generate_latex_box(from_=from_,
-                                               to_=to_,
-                                               color=color))
 
         for r in s.rows:
             anchor = r.anchor
@@ -17,7 +10,7 @@ def generate_latex_uml(uml):
             x = r.position[0]
             y = r.position[1]
 
-            latex_pieces.append(generate_latex_node(at_=(x, y),
+            latex_pieces.append(generate_tikz_node(at_=(x, y),
                                                     anchor=anchor,
                                                     align=r.align,
                                                     font_size=uml.config.font_size,
@@ -25,14 +18,22 @@ def generate_latex_uml(uml):
                                                     color=color,
                                                     text=r.content))
 
+        from_ = s.position
+        to_ = (s.position[0] + uml.config.width, s.position[1] + s.height)
+        color = s.config.background_color
+
+        latex_pieces.append(generate_tikz_box(from_=from_,
+                                               to_=to_,
+                                               color=color))
+
     latex_pieces.reverse()
     return '\n'.join(latex_pieces)
 
 
-def generate_latex_box(from_, to_, color):
+def generate_tikz_box(from_, to_, color):
     return f"\\draw[fill={color}] {from_} rectangle {to_};"
 
-def generate_latex_node(at_, anchor, align, font_size, baseline_skip, color, text):
+def generate_tikz_node(at_, anchor, align, font_size, baseline_skip, color, text):
     text = escape_latex(text)
     return (
         f"\\node["
@@ -43,7 +44,7 @@ def generate_latex_node(at_, anchor, align, font_size, baseline_skip, color, tex
         f"] at {at_} {{{text}}};"
     )
 
-def generate_latex_line(from_, to_):
+def generate_tikz_line(from_, to_):
     return f"\\draw {from_} -- {to_};"
 
 def escape_latex(text):
