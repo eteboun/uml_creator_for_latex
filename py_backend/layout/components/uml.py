@@ -11,6 +11,8 @@ class UML:
     config: UMLConfig
     c_model: cm.Base
 
+    height: float = field(init=False)
+
     wrapper_threshold: int = field(init=False)
     sections: list[Section] = field(default_factory=list, init=False)
 
@@ -56,7 +58,7 @@ class UML:
                 row_text = t.create_row_text(module=item)
 
                 row_lines = self.get_row_lines(row_text)
-                row_content = '\\\\\n'.join(row_lines)
+                row_content = '\n'.join(row_lines)
                 row_height = self.get_row_height(row_lines)
 
                 new_row = Row(
@@ -95,8 +97,8 @@ class UML:
 
     def create_sections(self):
 
-        sec_x = self.config.init_x
-        sec_y = self.config.init_y
+        sec_x = self.config.x
+        sec_y = self.config.y
 
         for s in self.sections:
             s.position = (sec_x, sec_y)
@@ -110,6 +112,8 @@ class UML:
 
             s.height = sec_y - s.position[1]
 
+        self.height = sec_y - self.config.y
+
     def class_to_rows(self):
         self.add_to_module_sections()
 
@@ -120,5 +124,22 @@ class UML:
 
     def as_dict(self):
         return {
+            'id': self.c_model.name,
+
+            'x': self.config.x,
+            'y': self.config.y,
+
+            'width': self.config.width,
+            'height': self.height,
+
+            'scale': self.config.scale,
+
+            'config': {
+                'font_size': self.config.font_size,
+                'baseline_skip': self.config.baseline_skip,
+                'y_margin': self.config.y_margin,
+                'x_margin': self.config.x_margin,
+            },
+
             'sections': [s.as_dict() for s in self.sections],
         }

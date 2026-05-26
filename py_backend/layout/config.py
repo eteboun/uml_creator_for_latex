@@ -41,8 +41,10 @@ class UMLConfig:
     x_margin: float
     y_margin: float
 
-    init_x: float
-    init_y: float
+    x: float
+    y: float
+
+    scale: float
 
     sections: dict[str, SectionConfig]
 
@@ -55,8 +57,10 @@ class UMLConfig:
         "x_margin": float | int,
         "y_margin": float | int,
 
-        "init_x": float | int,
-        "init_y": float | int,
+        "x": float | int,
+        "y": float | int,
+
+        "scale": float | int,
 
         "sections": dict,
     }

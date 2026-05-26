@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UML Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="mark">U</div>
+        <div>
+          <h1>UML Studio</h1>
+        </div>
+      </div>
+    </header>
+
+    <aside>
+      <section class="section">
+        <h2 class="section-title">UML Objects</h2>
+        <div class="uml-list" id="umlObjects">
+          <div class="uml-empty">Generated UML diagrams will appear here.</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Selected Object</h2>
+        <div class="object-tools">
+          <div class="corner-readout" id="cornerReadout">Left bottom: -</div>
+          <div class="corner-readout" id="scaleReadout">Scale: -</div>
+          <label class="size-control" for="sizeControl">
+            <span>Size</span>
+            <input id="sizeControl" type="range" min="1" max="21" step="0.1" value="7" disabled>
+          </label>
+          <button class="tool-btn danger" id="deleteObject" type="button" disabled>Delete</button>
+        </div>
+      </section>
+    </aside>
+
+    <main>
+      <div class="stage" id="stage" aria-label="21 x 29.7 SVG canvas">
+        <svg class="canvas-svg" id="canvasSvg" viewBox="0 0 21 29.7" role="img" aria-label="21 by 29.7 UML canvas">
+          <rect class="canvas-background" x="0" y="0" width="21" height="29.7"></rect>
+        </svg>
+        <div class="drop-hint">21 x 29.7 SVG canvas</div>
+      </div>
+    </main>
+
+    <aside class="right">
+      <section class="section code-section">
+        <h2 class="section-title">Java Code</h2>
+        <textarea class="code-input" id="javaCode" spellcheck="false" placeholder="Paste your Java code here"></textarea>
+        <button class="tool-btn primary send-code" id="sendCode" type="button">Create</button>
+      </section>
+    </aside>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
