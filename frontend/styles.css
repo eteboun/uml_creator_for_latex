@@ -319,15 +319,23 @@ aside.right .section {
   opacity: .48;
 }
 
-.send-code {
+.code-actions {
   position: sticky;
   bottom: 0;
   z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 -8px 14px rgba(255, 255, 255, .88);
+}
+
+.send-code {
   flex: 0 0 auto;
   width: 100%;
-  margin-top: 10px;
   justify-content: center;
-  box-shadow: 0 -8px 14px rgba(255, 255, 255, .88);
 }
 
 main {
@@ -532,3 +540,14 @@ main {
     --canvas-page-width: 48vh;
   }
 }
+
+
+
+.latex-title {
+  margin-top: 14px;
+}
+
+.latex-output {
+  min-height: 160px;
+}
+

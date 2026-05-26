@@ -1,3 +1,23 @@
+base_code = r"""
+\begin{tikzpicture}[
+    transform shape,
+    remember picture,
+    overlay,
+    shift={(current page.south west)}
+]
+
+%%UMLS%%
+
+\end{tikzpicture}
+"""
+
+def generate_tikz(UMLs):
+    latex = [generate_tikz_uml(uml) for uml in UMLs]
+    return base_code.replace(
+        "%%UMLS%%",
+        "\n\n".join(latex)
+    )
+
 def generate_tikz_uml(uml):
     latex_pieces = []
 
@@ -10,13 +30,14 @@ def generate_tikz_uml(uml):
             x = r.position[0]
             y = r.position[1]
 
+            text = '\\\\\n'.join(r.content)
             latex_pieces.append(generate_tikz_node(at_=(x, y),
                                                     anchor=anchor,
                                                     align=r.align,
                                                     font_size=uml.config.font_size,
                                                     baseline_skip=uml.config.baseline_skip,
                                                     color=color,
-                                                    text=r.content))
+                                                    text=text))
 
         from_ = s.position
         to_ = (s.position[0] + uml.config.width, s.position[1] + s.height)
@@ -27,25 +48,30 @@ def generate_tikz_uml(uml):
                                                color=color))
 
     latex_pieces.reverse()
-    return '\n'.join(latex_pieces)
+
+    latex = rf"""
+    \begin{{scope}}[shift={{({uml.config.x},{uml.config.y})}}]
+        \begin{{scope}}[scale={uml.config.scale}]
+        {'\n\n'.join(latex_pieces)}
+        \end{{scope}}
+    \end{{scope}}
+    """
+    return latex
 
 
 def generate_tikz_box(from_, to_, color):
-    return f"\\draw[fill={color}] {from_} rectangle {to_};"
+    return rf"\draw[fill={color}] {from_} rectangle {to_};"
 
 def generate_tikz_node(at_, anchor, align, font_size, baseline_skip, color, text):
     text = escape_latex(text)
     return (
-        f"\\node["
-        f"text={color},"
-        f"anchor={anchor},"
-        f"align={align},"
-        f"font=\\fontsize{{{font_size}cm}}{{{baseline_skip}cm}}\\selectfont"
-        f"] at {at_} {{{text}}};"
+        rf"\node["
+        rf"text={color},"
+        rf"anchor={anchor},"
+        rf"align={align},"
+        rf"font=\ttfamily\fontsize{{{font_size}cm}}{{{baseline_skip}cm}}\selectfont"
+        rf"] at {at_} {{{text}}};"
     )
-
-def generate_tikz_line(from_, to_):
-    return f"\\draw {from_} -- {to_};"
 
 def escape_latex(text):
     return (

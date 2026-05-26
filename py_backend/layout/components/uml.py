@@ -4,6 +4,7 @@ from py_backend.structural import class_models as cm, default_types as dt
 from .. import textual as t
 from .rows import Row
 from .sections import Section
+from uuid import uuid4
 
 @dataclass
 class UML:
@@ -12,6 +13,7 @@ class UML:
     c_model: cm.Base
 
     height: float = field(init=False)
+    id: str = field(init=False)
 
     wrapper_threshold: int = field(init=False)
     sections: list[Section] = field(default_factory=list, init=False)
@@ -26,6 +28,8 @@ class UML:
 
         char_width = 0.6 * self.config.font_size
         self.wrapper_threshold = int((self.config.width - 2 * self.config.x_margin) / char_width)
+
+        self.id = f"uml_{uuid4().hex[:8]}"
 
         self.class_to_rows()
 
@@ -58,14 +62,13 @@ class UML:
                 row_text = t.create_row_text(module=item)
 
                 row_lines = self.get_row_lines(row_text)
-                row_content = '\n'.join(row_lines)
                 row_height = self.get_row_height(row_lines)
 
                 new_row = Row(
                     height=row_height,
                     anchor="west",
                     align="left",
-                    content=row_content,
+                    content=row_lines,
                     lines=len(row_lines),
                 )
                 target_section.rows.append(new_row)
@@ -80,13 +83,12 @@ class UML:
             t_lines = s_lines + t_lines
 
         t_height = self.get_row_height(t_lines)
-        t_content = '\\\\'.join(t_lines)
 
         title_row = Row(
             height=t_height,
             anchor="center",
             align="center",
-            content=t_content,
+            content=t_lines,
             lines=len(t_lines),
         )
 
@@ -97,8 +99,8 @@ class UML:
 
     def create_sections(self):
 
-        sec_x = self.config.x
-        sec_y = self.config.y
+        sec_x = 0
+        sec_y = 0
 
         for s in self.sections:
             s.position = (sec_x, sec_y)
@@ -112,7 +114,7 @@ class UML:
 
             s.height = sec_y - s.position[1]
 
-        self.height = sec_y - self.config.y
+        self.height = sec_y
 
     def class_to_rows(self):
         self.add_to_module_sections()
@@ -122,24 +124,23 @@ class UML:
 
         self.create_sections()
 
+    def update_uml(self, x: float, y: float, scale: float):
+        self.config.x = x
+        self.config.y = y
+        self.config.scale = scale
+
     def as_dict(self):
         return {
-            'id': self.c_model.name,
+            'name': self.c_model.name,
+            'id': self.id,
 
             'x': self.config.x,
             'y': self.config.y,
 
-            'width': self.config.width,
-            'height': self.height,
+            'font_size': self.config.font_size,
+            'baseline_skip': self.config.baseline_skip,
 
             'scale': self.config.scale,
-
-            'config': {
-                'font_size': self.config.font_size,
-                'baseline_skip': self.config.baseline_skip,
-                'y_margin': self.config.y_margin,
-                'x_margin': self.config.x_margin,
-            },
 
             'sections': [s.as_dict() for s in self.sections],
         }

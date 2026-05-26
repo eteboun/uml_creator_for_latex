@@ -52,7 +52,12 @@
       <section class="section code-section">
         <h2 class="section-title">Java Code</h2>
         <textarea class="code-input" id="javaCode" spellcheck="false" placeholder="Paste your Java code here"></textarea>
-        <button class="tool-btn primary send-code" id="sendCode" type="button">Create</button>
+        <h2 class="section-title latex-title">Latex Code</h2>
+        <textarea class="code-input latex-output" id="latexCode" spellcheck="false" placeholder="Generated LaTeX will appear here" readonly></textarea>
+        <div class="code-actions">
+          <button class="tool-btn primary send-code" id="sendCode" type="button">Create</button>
+          <button class="tool-btn send-code" id="saveConfig" type="button" disabled>Create Latex</button>
+        </div>
       </section>
     </aside>
   </div>
@@ -60,3 +65,7 @@
   <script src="script.js"></script>
 </body>
 </html>
+
+
+
+

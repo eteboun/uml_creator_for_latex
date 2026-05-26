@@ -1,5 +1,7 @@
 const javaCode = document.querySelector("#javaCode");
 const sendCode = document.querySelector("#sendCode");
+const saveConfig = document.querySelector("#saveConfig");
+const latexCode = document.querySelector("#latexCode");
 const stage = document.querySelector("#stage");
 const canvasSvg = document.querySelector("#canvasSvg");
 const umlObjects = document.querySelector("#umlObjects");
@@ -13,6 +15,8 @@ const canvasSize = {
   height: 29.7
 };
 const svgNS = "http://www.w3.org/2000/svg";
+const saveConfigUrl = "http://localhost:8000/uml/update";
+const deleteUmlUrl = "http://localhost:8000/uml/delete";
 
 let activeDrag = null;
 let nextZ = 1;
@@ -68,6 +72,46 @@ function parsePosition(position, fallbackX = 0, fallbackY = 0) {
   };
 }
 
+function getSectionBounds(sections = []) {
+  const bounds = sections.reduce((acc, section) => {
+    const sectionPosition = parsePosition(section.position);
+    const sectionHeight = Number(section.height || 0);
+    const centeredWidths = (section.rows || [])
+      .filter((row) => row.anchor === "center" || row.align === "center")
+      .map((row) => Math.max(0, (parsePosition(row.position).x - sectionPosition.x) * 2));
+    const rowXs = (section.rows || []).map((row) => parsePosition(row.position).x);
+    const fallbackWidth = rowXs.length ? Math.max(...rowXs) - sectionPosition.x : 1;
+    const sectionWidth = Number(section.width || Math.max(...centeredWidths, fallbackWidth, 1));
+
+    return {
+      minX: Math.min(acc.minX, sectionPosition.x),
+      minY: Math.min(acc.minY, sectionPosition.y),
+      maxX: Math.max(acc.maxX, sectionPosition.x + sectionWidth),
+      maxY: Math.max(acc.maxY, sectionPosition.y + sectionHeight)
+    };
+  }, {
+    minX: Infinity,
+    minY: Infinity,
+    maxX: -Infinity,
+    maxY: -Infinity
+  });
+
+  if (!Number.isFinite(bounds.minX)) {
+    return {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1
+    };
+  }
+
+  return {
+    x: bounds.minX,
+    y: bounds.minY,
+    width: Math.max(1, bounds.maxX - bounds.minX),
+    height: Math.max(1, bounds.maxY - bounds.minY)
+  };
+}
 function latexColorToCss(color) {
   const namedColors = {
     black: "#000000",
@@ -133,7 +177,9 @@ function createTextRow(row, objectConfig) {
     "dominant-baseline": "middle",
     "text-anchor": row.anchor === "center" ? "middle" : "start"
   });
-  const lines = String(row.content || "").split(/\r?\n/);
+  const lines = Array.isArray(row.content)
+    ? row.content.map((line) => String(line))
+    : String(row.content || "").split(/\r?\n/);
   const baselineSkip = Number(objectConfig.baseline_skip || fontSize);
   const firstDy = -((lines.length - 1) * baselineSkip) / 2;
 
@@ -178,36 +224,41 @@ function createSection(section, objectConfig, objectWidth) {
 }
 
 function createUmlObject(objectConfig, index) {
-  const x = Number(objectConfig.x || 0);
-  const y = Number(objectConfig.y || 0);
-  const width = Number(objectConfig.width || 1);
-  const height = Number(objectConfig.height || 1);
+  const bounds = getSectionBounds(objectConfig.sections || []);
+  const x = Number(objectConfig.x ?? bounds.x);
+  const y = Number(objectConfig.y ?? bounds.y);
+  const width = Number(objectConfig.width ?? bounds.width);
+  const height = Number(objectConfig.height ?? bounds.height);
+  const baseX = Number(objectConfig.width == null ? bounds.x : x);
+  const baseY = Number(objectConfig.height == null ? bounds.y : y);
   const scale = Number(objectConfig.scale || 1);
   const group = createSvgElement("g", {
     class: "canvas-shape uml-object",
     tabindex: "0"
   });
 
-  group.dataset.label = objectConfig.id || `UML Object ${index + 1}`;
-  group.dataset.baseX = x;
-  group.dataset.baseY = y;
+  group.dataset.id = objectConfig.id || objectConfig.name || `uml-${index + 1}`;
+  group.dataset.label = objectConfig.name || objectConfig.id || `UML Object ${index + 1}`;
+  group.dataset.baseX = baseX;
+  group.dataset.baseY = baseY;
   group.dataset.x = x;
   group.dataset.y = y;
   group.dataset.initialWidth = width;
   group.dataset.initialHeight = height;
   group.dataset.width = width * scale;
+  group.dataset.config = JSON.stringify(objectConfig);
 
   group.appendChild(createSvgElement("rect", {
     class: "selection-rect",
-    x: x + 0.04,
-    y: svgYFromBottom(y + height) + 0.04,
+    x: baseX + 0.04,
+    y: svgYFromBottom(baseY + height) + 0.04,
     width: Math.max(0, width - 0.08),
     height: Math.max(0, height - 0.08),
     fill: "none"
   }));
 
   (objectConfig.sections || []).forEach((section) => {
-    group.appendChild(createSection(section, objectConfig.config || {}, width));
+    group.appendChild(createSection(section, objectConfig, width));
   });
 
   applyShapeTransform(group);
@@ -241,6 +292,27 @@ function renderUmlConfigs(umlCFGs) {
   }
 }
 
+function getShapeConfigPayload(shape) {
+  const config = JSON.parse(shape.dataset.config || "{}");
+  const initialWidth = Number(shape.dataset.initialWidth || 1);
+
+  return {
+    id: config.id || shape.dataset.id || shape.dataset.label,
+    x: Number(shape.dataset.x),
+    y: Number(shape.dataset.y),
+    scale: Number(shape.dataset.width) / initialWidth
+  };
+}
+
+function getShapeId(shape) {
+  const config = JSON.parse(shape.dataset.config || "{}");
+  return config.id || shape.dataset.id || shape.dataset.label;
+}
+
+function getChangedConfigsPayload() {
+  return Array.from(canvasSvg.querySelectorAll(".canvas-shape")).map(getShapeConfigPayload);
+}
+
 function updateObjectList() {
   const shapes = Array.from(canvasSvg.querySelectorAll(".canvas-shape"));
   stage.classList.toggle("has-items", shapes.length > 0);
@@ -269,8 +341,10 @@ function updateObjectList() {
 
 function updateSelectionControls() {
   const hasSelection = Boolean(selectedShape);
+  const hasObjects = Boolean(canvasSvg.querySelector(".canvas-shape"));
   deleteObject.disabled = !hasSelection;
   sizeControl.disabled = !hasSelection;
+  saveConfig.disabled = !hasObjects;
 
   if (hasSelection) {
     const initialWidth = Number(selectedShape.dataset.initialWidth || selectedShape.dataset.width);
@@ -380,13 +454,55 @@ window.addEventListener("resize", () => {
   });
 });
 
-deleteObject.addEventListener("click", () => {
+deleteObject.addEventListener("click", async () => {
   if (!selectedShape) return;
 
-  selectedShape.remove();
-  selectedShape = null;
-  updateSelectionControls();
-  updateObjectList();
+  const shapeToDelete = selectedShape;
+  const id = getShapeId(shapeToDelete);
+  deleteObject.disabled = true;
+
+  try {
+    const response = await fetch(deleteUmlUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ id })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Delete failed with status ${response.status}`);
+    }
+
+    shapeToDelete.remove();
+    selectedShape = null;
+    updateSelectionControls();
+    updateObjectList();
+  } catch (error) {
+    console.error(error);
+    updateSelectionControls();
+  }
+});
+
+saveConfig.addEventListener("click", async () => {
+  const configs = getChangedConfigsPayload();
+  if (configs.length === 0) return;
+
+  const response = await fetch(saveConfigUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(configs)
+  });
+
+  const result = await response.json();
+  const latex = typeof result === "string"
+    ? result
+    : result.latex || result.latex_code || result.code || JSON.stringify(result, null, 2);
+
+  latexCode.value = latex;
+  console.log(result);
 });
 
 sizeControl.addEventListener("input", () => {
@@ -402,7 +518,7 @@ sizeControl.addEventListener("input", () => {
 sendCode.addEventListener("click", async () => {
   const code = javaCode.value;
 
-  const response = await fetch("http://localhost:8000/uml", {
+  const response = await fetch("http://localhost:8000/uml/create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
