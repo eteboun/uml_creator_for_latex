@@ -9,6 +9,8 @@ import java.util.List;
 public record DefaultRecord(String name,
                            String accessSpecifier,
                            ClassTypes type_,
+                            boolean isFinal,
+                            boolean isStatic,
                            List<ParameterInfo> parameters,
                            List<FieldInfo> fields,
                            List<ConstructorInfo> constructors,

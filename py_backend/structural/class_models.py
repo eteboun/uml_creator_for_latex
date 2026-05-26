@@ -9,13 +9,14 @@ class Base:
     fields: list = field(default_factory=list)
     methods: list = field(default_factory=list)
 
+    isStatic: bool = False
+
 @dataclass
 class ClassObj(Base):
     extends_: list = field(default_factory=list)
     implements_: list = field(default_factory=list)
     permits_: list = field(default_factory=list)
     constructors: list = field(default_factory=list)
-
     isFinal: bool = False
     isAbstract: bool = False
 
@@ -23,12 +24,15 @@ class ClassObj(Base):
 class InterfaceObj(Base):
     extends_: list = field(default_factory=list)
     permits_: list = field(default_factory=list)
+    isFinal: bool = False
+    isAbstract: bool = False
 
 @dataclass
 class RecordObj(Base):
     implements_: list = field(default_factory=list)
     parameters: list = field(default_factory=list)
     constructors: list = field(default_factory=list)
+    isFinal: bool = False
 
 @dataclass
 class EnumObj(Base):

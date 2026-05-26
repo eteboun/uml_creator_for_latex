@@ -28,9 +28,8 @@ class Session:
         @self.app.post("/uml/create")
         def create_umls(data: dict):
             cmodels = Converter.run(data["code"])
-            base_cfg = create_uml_config('config.json')
 
-            UMLs = [UML(config=base_cfg, c_model=cmodel) for cmodel in cmodels]
+            UMLs = [UML(config=create_uml_config('config.json'), c_model=cmodel) for cmodel in cmodels]
             self.UMLs.update({uml.id: uml for uml in UMLs})
 
             return [uml_.as_dict() for uml_ in UMLs]
@@ -48,5 +47,5 @@ class Session:
             id_ = data.pop("id")
             self.UMLs.pop(id_)
 
-            return
+            return {"deleted": id_}
 

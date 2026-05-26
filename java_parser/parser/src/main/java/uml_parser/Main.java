@@ -132,11 +132,15 @@ public class Main {
         String name = cls.getNameAsString();
         String accessSpecifier =  cls.getAccessSpecifier().asString();
         ClassTypes type_;
+        boolean isStatic = cls.isStatic();
 
         List<FieldInfo> fields = parseFields(cls.getFields());
 
         switch (cls) {
             case ClassOrInterfaceDeclaration c -> {
+                boolean isFinal = c.isFinal();
+                boolean isAbstract = c.isAbstract();
+
                 if (!c.getTypeParameters().isEmpty()) {
                     name += "<" +
                             c.getTypeParameters()
@@ -145,6 +149,7 @@ public class Main {
                                     .collect(Collectors.joining(", "))
                             + ">";
                 }
+
                 List<MethodInfo> methods = parseMethods(c.getMethods());
                 List<String> extends_ = c.getExtendedTypes()
                         .stream()
@@ -161,6 +166,9 @@ public class Main {
                             name,
                             accessSpecifier,
                             type_,
+                            isFinal,
+                            isAbstract,
+                            isStatic,
                             fields,
                             methods,
                             extends_,
@@ -173,8 +181,6 @@ public class Main {
                             .stream()
                             .map(NodeWithSimpleName::getNameAsString)
                             .toList();
-                    boolean isFinal = c.isFinal();
-                    boolean isAbstract = c.isAbstract();
 
                     return new DefaultClass(
                             name,
@@ -182,6 +188,7 @@ public class Main {
                             type_,
                             isFinal,
                             isAbstract,
+                            isStatic,
                             fields,
                             constructors,
                             methods,
@@ -194,6 +201,8 @@ public class Main {
             case RecordDeclaration c -> {
 
                 type_ = ClassTypes.RECORD;
+                boolean isFinal = c.isFinal();
+
                 List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
                 List<ParameterInfo> parameters = parseParameters(c.getParameters());
                 List<MethodInfo> methods = parseMethods(c.getMethods());
@@ -206,6 +215,8 @@ public class Main {
                         name,
                         accessSpecifier,
                         type_,
+                        isFinal,
+                        isStatic,
                         parameters,
                         fields,
                         constructors,
@@ -228,6 +239,7 @@ public class Main {
                         name,
                         accessSpecifier,
                         type_,
+                        isStatic,
                         fields,
                         constructors,
                         methods,

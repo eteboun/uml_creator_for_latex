@@ -1,5 +1,6 @@
 from py_backend.structural.modifiers import AccessSpecifiers as As
 from py_backend.structural.class_modules import *
+from py_backend.structural.class_models import *
 
 def depth_until(text, pos):
     depth = 0
@@ -117,11 +118,18 @@ def constant_to_text(constant):
     return f'{constant.name}{tuple(constant.args) if constant.args else ''}'
 
 def title_to_text(cmodel):
-    if cmodel.isAbstract:
-        end = ' {abstract}'
-    else:
-        end = ''
+    mods = []
+    if isinstance(cmodel, ClassObj | InterfaceObj):
+        if cmodel.isStatic:
+            mods.append('static')
 
+        if cmodel.isAbstract:
+            mods.append('abstract')
+    else:
+        if cmodel.isStatic:
+            mods.append('static')
+
+    end = f" {{{', '.join(mods)}}}" if mods else ''
     return f'{cmodel.name}{end}'
 
 def create_row_text(module):

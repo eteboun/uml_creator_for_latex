@@ -1,0 +1,13 @@
+export const elements = {
+  javaCode: document.querySelector("#javaCode"),
+  sendCode: document.querySelector("#sendCode"),
+  saveConfig: document.querySelector("#saveConfig"),
+  latexCode: document.querySelector("#latexCode"),
+  stage: document.querySelector("#stage"),
+  canvasSvg: document.querySelector("#canvasSvg"),
+  umlObjects: document.querySelector("#umlObjects"),
+  deleteObject: document.querySelector("#deleteObject"),
+  sizeControl: document.querySelector("#sizeControl"),
+  cornerReadout: document.querySelector("#cornerReadout"),
+  scaleReadout: document.querySelector("#scaleReadout")
+};

@@ -4,4 +4,5 @@ public interface DefaultBase {
     String name();
     String accessSpecifier();
     ClassTypes type_();
+    boolean isStatic();
 }

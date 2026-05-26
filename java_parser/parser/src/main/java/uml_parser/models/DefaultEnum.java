@@ -8,6 +8,7 @@ import java.util.List;
 public record DefaultEnum(String name,
                            String accessSpecifier,
                            ClassTypes type_,
+                           boolean isStatic,
                            List<FieldInfo> fields,
                            List<ConstructorInfo> constructors,
                            List<MethodInfo> methods,
