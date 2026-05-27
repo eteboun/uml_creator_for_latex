@@ -1,25 +1,22 @@
-import { createSvgElement, latexColorToCss, parsePosition, svgYFromBottom } from "./utils.js";
+import { createSvgElement, parseColor, svgYFromBottom } from "./utils.js";
 
-export function createTextRow(row, objectConfig) {
-  const rowPosition = parsePosition(row.position);
-  const fontSize = Number(objectConfig.font_size);
+export function createTextRow(row, section, objectConfig) {
   const text = createSvgElement("text", {
-    x: rowPosition.x,
-    y: svgYFromBottom(rowPosition.y),
-    fill: latexColorToCss(row.text_color || "black"),
-    "font-size": fontSize,
+    x: row.position[0],
+    y: section.height - row.position[1],
+    fill: parseColor(section.config.text_color),
+    "font-size": objectConfig.font_size,
     "font-family": "Arial, Helvetica, sans-serif",
     "dominant-baseline": "middle",
     "text-anchor": row.anchor === "center" ? "middle" : "start"
   });
-  const lines = row.lines;
-  const baselineSkip = Number(objectConfig.baseline_skip);
-  const firstDy = -((lines.length - 1) * baselineSkip) / 2;
 
-  lines.forEach((line, index) => {
+  const firstDy = -((row.lines.length - 1) * objectConfig.baseline_skip) / 2;
+
+  row.lines.forEach((line, index) => {
     const tspan = createSvgElement("tspan", {
-      x: rowPosition.x,
-      dy: index === 0 ? firstDy : baselineSkip
+      x: row.position[0],
+      dy: index === 0 ? firstDy : objectConfig.baseline_skip
     });
     tspan.textContent = line;
     text.appendChild(tspan);
@@ -29,46 +26,35 @@ export function createTextRow(row, objectConfig) {
 }
 
 export function createSection(section, objectConfig) {
-  const sectionPosition = parsePosition(section.position);
-  const sectionHeight = Number(section.height || 0);
-  const sectionConfig = section.config || {};
 
   const group = createSvgElement("g", {
-    class: `uml-section uml-section-${section.name || "unnamed"}`
+    class: `uml-section uml-section-${section.name}`
   });
 
   group.appendChild(createSvgElement("rect", {
-    x: sectionPosition.x,
-    y: svgYFromBottom(sectionPosition.y + sectionHeight),
+    x: section.position[0],
+    y: objectConfig.height - (section.position[1] + section.height),
     width: objectConfig.width,
-    height: sectionHeight,
-    fill: latexColorToCss(sectionConfig.background_color || "white"),
+    height: section.height,
+    fill: parseColor(section.config.background_color),
     stroke: "#000000",
     "stroke-width": "0.04"
   }));
 
-  (section.rows || []).forEach((row) => {
-    group.appendChild(createTextRow(row, sectionConfig));
+  section.rows.forEach((row) => {
+    group.appendChild(createTextRow(row, section, objectConfig));
   });
 
   return group;
 }
 
 export function createUmlObject(objectConfig) {
-  const nestedConfig = typeof objectConfig.config === "object"
-    ? objectConfig.config
-    : {};
   objectConfig = {
-    ...nestedConfig,
+    ...objectConfig.config,
     ...objectConfig
   };
   delete objectConfig.config;
 
-  const x = Number(objectConfig.x);
-  const y = Number(objectConfig.y);
-  const width = Number(objectConfig.width);
-  const height = Number(objectConfig.height);
-  const scale = Number(objectConfig.scale || 1);
   const group = createSvgElement("g", {
     class: "canvas-shape uml-object",
     tabindex: "0"
@@ -76,32 +62,23 @@ export function createUmlObject(objectConfig) {
 
   group.dataset.id = objectConfig.id;
   group.dataset.name = objectConfig.name;
-  group.dataset.x = x;
-  group.dataset.y = y;
-  group.dataset.width = width * scale;
-  group.dataset.height = height * scale;
-  group.dataset.config = JSON.stringify(objectConfig);
+  group.dataset.x = objectConfig.x;
+  group.dataset.y = objectConfig.y;
+  group.dataset.width = objectConfig.width;
+  group.dataset.height = objectConfig.height;
 
   group.appendChild(createSvgElement("rect", {
     class: "selection-rect",
-    x: x - 0.2,
-    y: svgYFromBottom(y) + 0.2,
-    width: Math.max(0, width + 0.4),
-    height: Math.max(0, height + 0.4),
+    x: -0.2,
+    y: 0.2,
+    width: Math.max(0, objectConfig.width + 0.4),
+    height: Math.max(0, objectConfig.height + 0.4),
     fill: "none"
   }));
 
-  (objectConfig.sections || []).forEach((section) => {
-    group.appendChild(createSection(section, objectConfig, width));
+  objectConfig.sections.forEach((section) => {
+    group.appendChild(createSection(section, objectConfig));
   });
 
   return group;
-}
-
-export function checkUmlObjects(payload) {
-  if (!Array.isArray(payload)) {
-    throw new Error("Expected UML objects array from backend");
-  }
-
-  return payload;
 }

@@ -7,9 +7,7 @@ export const elements = {
   canvasSvg: document.querySelector("#canvasSvg"),
   umlObjects: document.querySelector("#umlObjects"),
   deleteObject: document.querySelector("#deleteObject"),
-  sizeControl: document.querySelector("#sizeControl"),
   xLengthControl: document.querySelector("#xLengthControl"),
   yLengthControl: document.querySelector("#yLengthControl"),
   cornerReadout: document.querySelector("#cornerReadout"),
-  sizeReadout: document.querySelector("#sizeReadout")
 };

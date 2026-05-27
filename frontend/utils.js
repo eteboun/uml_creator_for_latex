@@ -30,38 +30,6 @@ export function createSvgElement(tagName, attributes = {}) {
   return element;
 }
 
-export function parsePosition(position, fallbackX = 0, fallbackY = 0) {
-  if (!Array.isArray(position)) {
-    throw new Error("Position should be an array");
-  }
-
-  return {
-    x: Number(position[0]),
-    y: Number(position[1])
-  };
-}
-
-export function latexColorToCss(color) {
-  const namedColors = {
-    black: "#000000",
-    blue: "#0000ff",
-    white: "#ffffff",
-    yellow: "#ffff00"
-  };
-
-  if (!color) return "#ffffff";
-  const rawColor = String(color).toLowerCase();
-  if (rawColor.startsWith("#") || rawColor.startsWith("rgb")) return color;
-
-  const [name, percent] = rawColor.split("!");
-  const baseColor = namedColors[name] || color;
-  if (!percent || !namedColors[name]) return baseColor;
-
-  const amount = clamp(Number(percent), 0, 100) / 100;
-  const base = baseColor.match(/\w\w/g).map((value) => parseInt(value, 16));
-  const mixed = base.map((channel) => {
-    return Math.round((channel * amount) + (255 * (1 - amount)));
-  });
-
-  return `rgb(${mixed[0]}, ${mixed[1]}, ${mixed[2]})`;
+export function parseColor(color) {
+  return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
 }

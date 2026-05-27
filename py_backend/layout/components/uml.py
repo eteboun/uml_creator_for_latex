@@ -151,7 +151,6 @@ class UML:
                 'font_size': self.config.font_size,
                 'baseline_skip': self.config.baseline_skip,
 
-                'scale': self.config.scale,
             },
 
             'sections': [s.as_dict() for s in self.sections],

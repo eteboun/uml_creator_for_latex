@@ -10,38 +10,36 @@
   "x": 1,
   "y": 1,
 
-  "scale": 1,
-
   "sections": {
 
     "title_section_config": {
-      "background_color": "blue!70",
-      "text_color": "yellow"
+      "background_color": [],
+      "text_color": []
     },
 
     "field_section_config": {
-      "background_color": "blue!20",
-      "text_color": "black"
+      "background_color": [],
+      "text_color": []
     },
 
     "method_section_config": {
-      "background_color": "blue!20",
-      "text_color": "black"
+      "background_color": [],
+      "text_color": []
     },
 
     "constant_section_config": {
-      "background_color": "blue!20",
-      "text_color": "black"
+      "background_color": [],
+      "text_color": []
     },
 
     "parameter_section_config": {
-      "background_color": "blue!20",
-      "text_color": "black"
+      "background_color": [],
+      "text_color": []
     },
 
     "constructor_section_config": {
-      "background_color": "blue!20",
-      "text_color": "black"
+      "background_color": [],
+      "text_color": []
     }
   }
 }

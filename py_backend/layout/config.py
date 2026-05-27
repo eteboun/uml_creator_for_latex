@@ -47,7 +47,6 @@ class UMLConfig:
     x: float
     y: float
 
-    scale: float
 
     sections: dict[str, SectionConfig]
 
@@ -62,8 +61,6 @@ class UMLConfig:
 
         "x": float | int,
         "y": float | int,
-
-        "scale": float | int,
 
         "sections": dict,
     }
