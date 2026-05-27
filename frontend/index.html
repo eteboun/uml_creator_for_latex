@@ -29,11 +29,21 @@
         <h2 class="section-title">Selected Object</h2>
         <div class="object-tools">
           <div class="corner-readout" id="cornerReadout">Left bottom: -</div>
-          <div class="corner-readout" id="scaleReadout">Scale: -</div>
+          <div class="corner-readout" id="sizeReadout">Size: -</div>
           <label class="size-control" for="sizeControl">
             <span>Size</span>
             <input id="sizeControl" type="range" min="1" max="21" step="0.1" value="7" disabled>
           </label>
+          <div class="length-controls" aria-label="UML object length controls">
+            <label class="size-control" for="xLengthControl">
+              <span>X Length</span>
+              <input id="xLengthControl" type="range" min="1" max="21" step="0.1" value="7" disabled>
+            </label>
+            <label class="size-control" for="yLengthControl">
+              <span>Y Length</span>
+              <input id="yLengthControl" type="range" min="1" max="29.7" step="0.1" value="7" disabled>
+            </label>
+          </div>
           <button class="tool-btn danger" id="deleteObject" type="button" disabled>Delete</button>
         </div>
       </section>

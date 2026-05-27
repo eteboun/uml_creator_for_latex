@@ -2,14 +2,20 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Row:
-    height: float
+
     anchor: str
     align: str
-    lines: int
     content: list = field(default_factory=list)
+    lines: list = field(default_factory=list)
     position: tuple[float, float] = (0.0, 0.0)
+    height: float = field(init=False)
 
     def as_dict(self):
-        d = self.__dict__.copy()
-        d['content'] = self.content.copy()
-        return d
+        return {
+            'height': self.height,
+            'anchor': self.anchor,
+            'align': self.align,
+            'content': self.content.copy(),
+            'lines': self.lines.copy(),
+            'position': self.position,
+        }

@@ -1,12 +1,4 @@
 from dataclasses import dataclass, field
-from . import class_models as cmodels
-
-STEREOTYPES = {
-    cmodels.ClassObj: None,
-    cmodels.EnumObj: '<< Enum >>',
-    cmodels.RecordObj: '<< Record >>',
-    cmodels.InterfaceObj: '<< Interface >>',
-}
 
 @dataclass
 class DefType:

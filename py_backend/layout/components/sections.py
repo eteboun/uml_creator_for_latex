@@ -12,7 +12,10 @@ class Section:
     rows: list[Row] = field(default_factory=list, init=False)
 
     def as_dict(self):
-        d = self.__dict__.copy()
-        d['config'] = self.config.as_dict()
-        d['rows'] = [r.as_dict() for r in self.rows]
-        return d
+        return {
+            "name": self.name,
+            "config": self.config.as_dict(),
+            "height": self.height,
+            "position": self.position,
+            "rows": [r.as_dict() for r in self.rows],
+        }

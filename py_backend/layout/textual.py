@@ -1,6 +1,5 @@
 from py_backend.structural.modifiers import AccessSpecifiers as As
 from py_backend.structural.class_modules import *
-from py_backend.structural.class_models import *
 
 def depth_until(text, pos):
     depth = 0
@@ -77,12 +76,14 @@ def as_to_text(accessSpecifier):
         return ''
 
 def field_to_text(field):
+    mods = []
+    for prop, name in field.allowed_modifiers.items():
+        if prop == "isFinal":
+            continue
+        if getattr(field, prop, False):
+            mods.append(name)
 
-    if field.isStatic:
-        end = ' {static}'
-    else:
-        end = ''
-
+    end = f" {{{', '.join(mods)}}}" if mods else ''
     return (f'{as_to_text(field.accessSpecifier)}{field.name}:'
             f' {field.type_.flatten()}{end}')
 
@@ -92,12 +93,11 @@ def constructor_to_text(constructor):
 
 def method_to_text(method):
     mods = []
-
-    if method.isStatic:
-        mods.append('static')
-
-    if method.isAbstract:
-        mods.append('abstract')
+    for prop, name in method.allowed_modifiers.items():
+        if prop == "isFinal":
+            continue
+        if getattr(method, prop, False):
+            mods.append(name)
 
     end = f" {{{', '.join(mods)}}}" if mods else ''
 
@@ -117,22 +117,18 @@ def parameter_to_text(parameter):
 def constant_to_text(constant):
     return f'{constant.name}{tuple(constant.args) if constant.args else ''}'
 
-def title_to_text(cmodel):
+def create_title_text(cmodel):
     mods = []
-    if isinstance(cmodel, ClassObj | InterfaceObj):
-        if cmodel.isStatic:
-            mods.append('static')
-
-        if cmodel.isAbstract:
-            mods.append('abstract')
-    else:
-        if cmodel.isStatic:
-            mods.append('static')
+    for prop, name in cmodel.allowed_modifiers.items():
+        if prop == "isFinal":
+            continue
+        if getattr(cmodel, prop, False):
+            mods.append(name)
 
     end = f" {{{', '.join(mods)}}}" if mods else ''
     return f'{cmodel.name}{end}'
 
-def create_row_text(module):
+def create_module_text(module):
     mapping = {
         Field: field_to_text,
         Constructor: constructor_to_text,

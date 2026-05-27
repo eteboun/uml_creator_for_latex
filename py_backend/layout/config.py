@@ -29,7 +29,10 @@ class SectionConfig:
         return cls(**d)
 
     def as_dict(self):
-        return self.__dict__.copy()
+        return {
+            "background_color": self.background_color,
+            "text_color": self.text_color,
+        }
 
 @dataclass
 class UMLConfig:
@@ -37,9 +40,9 @@ class UMLConfig:
     baseline_skip: float
 
     width: float
+    height: float
 
     x_margin: float
-    y_margin: float
 
     x: float
     y: float
@@ -53,9 +56,9 @@ class UMLConfig:
         "baseline_skip": float | int,
 
         "width": float | int,
+        "height": float | int,
 
         "x_margin": float | int,
-        "y_margin": float | int,
 
         "x": float | int,
         "y": float | int,
@@ -102,11 +105,6 @@ class UMLConfig:
             d["sections"][section_name] = SectionConfig.from_dict(d['sections'][section_name])
 
         return UMLConfig(**d)
-
-    def as_dict(self):
-        d = self.__dict__.copy()
-        d['sections'] = {s_name: s_config.as_dict for s_name, s_config in self.sections.items()}
-        return d
 
 def create_uml_config(addr):
     with open(addr, "r") as f:

@@ -168,6 +168,11 @@ aside.right .section {
   accent-color: var(--accent);
 }
 
+.length-controls {
+  display: grid;
+  gap: 10px;
+}
+
 .shape-item {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);

@@ -1,6 +1,7 @@
 from . import modifiers as m
 from . import default_types as dt
 from dataclasses import dataclass, field
+from typing import ClassVar
 
 @dataclass
 class Field:
@@ -10,6 +11,9 @@ class Field:
 
     isFinal: bool = False
     isStatic: bool = False
+
+    allowed_modifiers: ClassVar[dict[str,str]] = {"isStatic": "static",
+                                                  "isFinal": "final",}
 
 @dataclass
 class Parameter:
@@ -33,7 +37,10 @@ class Method:
     accessSpecifier: m.AccessSpecifiers
     type_: dt.DefType
     parameters: list[Parameter] = field(default_factory=list)
-
     isFinal: bool = False
     isStatic: bool = False
     isAbstract: bool = False
+
+    allowed_modifiers: ClassVar[dict[str,str]] = {"isStatic": "static",
+                                                  "isFinal": "final",
+                                                  "isAbstract": "abstract",}

@@ -8,6 +8,8 @@ export const elements = {
   umlObjects: document.querySelector("#umlObjects"),
   deleteObject: document.querySelector("#deleteObject"),
   sizeControl: document.querySelector("#sizeControl"),
+  xLengthControl: document.querySelector("#xLengthControl"),
+  yLengthControl: document.querySelector("#yLengthControl"),
   cornerReadout: document.querySelector("#cornerReadout"),
-  scaleReadout: document.querySelector("#scaleReadout")
+  sizeReadout: document.querySelector("#sizeReadout")
 };

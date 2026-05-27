@@ -31,23 +31,13 @@ export function createSvgElement(tagName, attributes = {}) {
 }
 
 export function parsePosition(position, fallbackX = 0, fallbackY = 0) {
-  if (Array.isArray(position)) {
-    return {
-      x: Number(position[0] ?? fallbackX),
-      y: Number(position[1] ?? fallbackY)
-    };
-  }
-
-  if (position && typeof position === "object") {
-    return {
-      x: Number(position.x ?? fallbackX),
-      y: Number(position.y ?? fallbackY)
-    };
+  if (!Array.isArray(position)) {
+    throw new Error("Position should be an array");
   }
 
   return {
-    x: fallbackX,
-    y: fallbackY
+    x: Number(position[0]),
+    y: Number(position[1])
   };
 }
 
