@@ -12,7 +12,6 @@ class UML:
     config: UMLConfig
     c_model: cm.Base
 
-    y_margin: float = field(init=False)
     id: str = field(init=False)
 
     wrapper_threshold: int = field(init=False)
@@ -31,50 +30,6 @@ class UML:
         self.id = f"uml_{uuid4().hex[:8]}"
 
         self.add_to_sections()
-        self.calculate_y_margin()
-
-    def calculate_y_margin(self):
-        total_lines_height = sum([self.get_lines_height(row.lines)
-                                  for section in self.sections
-                                  for row in section.rows])
-
-        if self.config.height < total_lines_height:
-            raise ValueError("height cannot be less than total_lines_height")
-
-        total_paddings = sum([len(section.rows) + 1 for section in self.sections])
-        self.y_margin = (self.config.height - total_lines_height) / total_paddings
-        self.set_positions()
-
-    def get_lines_height(self, lines):
-        return ((len(lines) - 1) *
-                self.config.baseline_skip +
-                self.config.font_size)
-
-    def get_row_height(self, row):
-        return ((len(row.lines) - 1) *
-                self.config.baseline_skip +
-                self.config.font_size +
-                self.y_margin)
-
-    def set_positions(self):
-
-        sec_x = 0
-        sec_y = 0
-        for s in self.sections:
-            s.position = (sec_x, sec_y)
-
-            row_x = self.config.x_margin if s.name != 'title' else self.config.width / 2
-            row_y = self.y_margin
-            for row in s.rows:
-                row.height = self.get_row_height(row)
-                row.position = (row_x, row_y + (row.height - self.y_margin) / 2)
-
-                sec_y += row.height
-                row_y += row.height
-
-            row_y += self.y_margin
-            sec_y += self.y_margin
-            s.height = sec_y - s.position[1]
 
     def add_to_sections(self):
         mapping = {
@@ -86,7 +41,7 @@ class UML:
             "constants": "constant_section_config",
         }
 
-        for section_type in reversed(self.c_model.allowed_section_types):
+        for section_type in self.c_model.allowed_section_types:
 
             cfg_name = mapping[section_type]
             section = Section(name=section_type, config=self.config.sections[cfg_name])
@@ -133,11 +88,6 @@ class UML:
 
             self.sections.append(section)
 
-    def update_uml(self, x: float, y: float, scale: float):
-        self.config.x = x
-        self.config.y = y
-        self.config.scale = scale
-
     def as_dict(self):
         return {
             'name': self.c_model.name,
@@ -151,7 +101,6 @@ class UML:
                 'y': self.config.y,
 
                 'x_margin': self.config.x_margin,
-                'y_margin': self.y_margin,
 
                 'font_size': self.config.font_size,
                 'baseline_skip': self.config.baseline_skip,

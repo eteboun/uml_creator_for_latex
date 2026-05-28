@@ -7,15 +7,11 @@ class Row:
     align: str
     content: list = field(default_factory=list)
     lines: list = field(default_factory=list)
-    position: tuple[float, float] = (0.0, 0.0)
-    height: float = field(init=False)
 
     def as_dict(self):
         return {
-            'height': self.height,
             'anchor': self.anchor,
             'align': self.align,
             'content': self.content.copy(),
             'lines': self.lines.copy(),
-            'position': self.position,
         }
