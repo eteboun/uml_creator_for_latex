@@ -1,8 +1,8 @@
 import { createSvgElement, parseColor, svgYFromBottom } from "./utils.js";
 
 export function createRow(row, section, objectConfig) {
+  
   const rowGroup = createSvgElement("g", {});
-
   const text = createSvgElement("text", {
     fill: parseColor(section.config.text_color),
     "font-size": objectConfig.font_size,
@@ -51,8 +51,10 @@ export function createUmlObject(objectConfig) {
   };
   delete objectConfig.config;
 
+  let y = svgYFromBottom(objectConfig.y + objectConfig.height);
+
   const group = createSvgElement("g", {
-    transform: `translate(${objectConfig.x}, ${svgYFromBottom(objectConfig.y)})`,
+    transform: `translate(${objectConfig.x}, ${y})`,
     class: "canvas-shape uml-object",
     tabindex: "0"
   });
@@ -60,7 +62,7 @@ export function createUmlObject(objectConfig) {
   group.dataset.id = objectConfig.id;
   group.dataset.name = objectConfig.name;
   group.dataset.x = objectConfig.x;
-  group.dataset.y = objectConfig.y;
+  group.dataset.y = y;
   group.dataset.x_margin = objectConfig.x_margin;
   group.dataset.width = objectConfig.width;
   group.dataset.height = objectConfig.height;
@@ -78,7 +80,7 @@ export function createUmlObject(objectConfig) {
     group.appendChild(createSection(section, objectConfig));
   });
 
-  group.dataset.y_margin = calculateYMargin(group);
+  calculateYMargin(group);
   setRelativePositions(group);
   setSelectionBox(group);
 
@@ -91,9 +93,7 @@ export function setRelativePositions(umlGroup) {
 
   sections.forEach((section) => {
     let starting_y = sec_y;
-    section.setAttribute("x", 0);
-    section.setAttribute("y", 0);
-    section.setAttribute("transform", `translate(${0}, ${sec_y})`)
+    section.setAttribute("transform", `translate(${0}, ${sec_y})`);
     
     let row_x = section.dataset.name === "title" ? Number(umlGroup.dataset.width) / 2 : Number(umlGroup.dataset.x_margin); 
     let row_y = Number(umlGroup.dataset.y_margin);
@@ -104,8 +104,6 @@ export function setRelativePositions(umlGroup) {
       const row_height = getRowHeight(umlGroup, lines);
       
       let real_row_y = row_y + (row_height - Number(umlGroup.dataset.y_margin)) / 2
-      row.setAttribute("x", 0);
-      row.setAttribute("y", 0);
       row.setAttribute("transform", `translate(${row_x}, ${real_row_y})`);
 
       sec_y += row_height;
@@ -136,13 +134,17 @@ export function calculateYMargin(umlGroup) {
     totalLinesHeight += getLinesHeight(umlGroup, lines)
   })
 
-  if (umlGroup.dataset.height < totalLinesHeight) {
+  if (Number(umlGroup.dataset.height) < totalLinesHeight) {
     umlGroup.dataset.height = totalLinesHeight;
-    return 0;
+    umlGroup.dataset.y_margin = 0;
   }
 
-  const totalPaddings = rows.length + 1;
-  return (Number(umlGroup.dataset.height) - Number(totalLinesHeight)) / totalPaddings; 
+  let totalPaddings = 0;
+  const sections = umlGroup.querySelectorAll(":scope > g");
+  sections.forEach((section) => {
+    totalPaddings += section.querySelectorAll(":scope > g").length + 1;
+  })
+  umlGroup.dataset.y_margin = (Number(umlGroup.dataset.height) - totalLinesHeight) / totalPaddings; 
 }
 
 export function getLinesHeight(umlGroup, lines) {

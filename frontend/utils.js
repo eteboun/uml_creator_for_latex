@@ -12,7 +12,7 @@ export function stagePoint(event) {
 
   return {
     x: svgX,
-    y: canvasSize.height - svgY
+    y: svgY
   };
 }
 

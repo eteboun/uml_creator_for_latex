@@ -1,7 +1,7 @@
 import { createUml, deleteUml, updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { createUmlObject } from "./uml-renderer.js";
+import { createUmlObject, setRelativePositions, calculateYMargin } from "./uml-renderer.js";
 import { clamp, stagePoint, svgYFromBottom } from "./utils.js";
 
 let activeDrag = null;
@@ -16,9 +16,7 @@ function shapeSizeInCanvasUnits(shape) {
 
 function applyShapeTransform(shape) {
   const x = Number(shape.dataset.x);
-  const y = svgYFromBottom(
-    Number(shape.dataset.y) + Number(shape.dataset.height)
-  );
+  const y = Number(shape.dataset.y)
 
   shape.setAttribute("transform", `translate(${x}, ${y})`);
 }
@@ -43,7 +41,6 @@ function renderUmlConfigs(umlCFGs) {
 
 function getShapeConfigPayload(shape) {
   const config = JSON.parse(shape.dataset.config || "{}");
-  const initialWidth = Number(shape.dataset.initialWidth);
 
   return {
     id: config.id,
@@ -51,7 +48,6 @@ function getShapeConfigPayload(shape) {
     y: Number(shape.dataset.y),
     width: Number(shape.dataset.width),
     height: Number(shape.dataset.height),
-    scale: Number(shape.dataset.width) / initialWidth
   };
 }
 
@@ -133,7 +129,7 @@ function applySize(shape) {
 
 function updateLeftBottom(shape) {
   shape.dataset.leftBottomX = Number(shape.dataset.x).toFixed(2);
-  shape.dataset.leftBottomY = Number(shape.dataset.y).toFixed(2);
+  shape.dataset.leftBottomY = (canvasSize.height - (Number(shape.dataset.y) + Number(shape.dataset.height))).toFixed(2);
 }
 
 function moveShape(shape, x, y) {
@@ -167,7 +163,7 @@ function bindShape(shape) {
       type: "move",
       shape,
       offsetX: point.x - Number(shape.dataset.x),
-      offsetY: point.y - Number(shape.dataset.y),
+      offsetY: point.y - Number(shape.dataset.y)
     };
   });
 }
@@ -231,26 +227,30 @@ function bindPageEvents() {
   elements.xLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    const bottom = Number(selectedShape.dataset.y);
     selectedShape.dataset.width = elements.xLengthControl.value;
     applySize(selectedShape);
-    moveShape(selectedShape, Number(selectedShape.dataset.x), bottom);
+
+    calculateYMargin(selectedShape);
+    setRelativePositions(selectedShape);
     elements.xLengthControl.value = selectedShape.dataset.width;
   });
 
   elements.yLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    const bottom = Number(selectedShape.dataset.y);
+    let prev_height = Number(selectedShape.dataset.height);
+
     selectedShape.dataset.height = elements.yLengthControl.value;
     applySize(selectedShape);
-    moveShape(selectedShape, Number(selectedShape.dataset.x), bottom);
+
+    calculateYMargin(selectedShape);
+    setRelativePositions(selectedShape);
+    
     elements.yLengthControl.value = selectedShape.dataset.height;
   });
 
   elements.sendCode.addEventListener("click", async () => {
     const umlCFGs = await createUml(elements.javaCode.value);
-    console.log(umlCFGs);
     renderUmlConfigs(umlCFGs);
   });
 }
