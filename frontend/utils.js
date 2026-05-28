@@ -16,6 +16,13 @@ export function stagePoint(event) {
   };
 }
 
+export function parsePosition(position) {
+  return {
+    x: position[0],
+    y: position[1]
+  }
+}
+
 export function svgYFromBottom(y) {
   return canvasSize.height - y;
 }

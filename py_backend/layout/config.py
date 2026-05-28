@@ -4,12 +4,12 @@ import json
 
 @dataclass
 class SectionConfig:
-    background_color: str
-    text_color: str
+    background_color: list[int]
+    text_color: list[int]
 
     proper_types: ClassVar[dict] = {
-        'background_color': str,
-        'text_color': str,
+        'background_color': list,
+        'text_color': list,
     }
 
     @classmethod

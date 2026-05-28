@@ -31,7 +31,6 @@ class Session:
 
             UMLs = [UML(config=create_uml_config('config.json'), c_model=cmodel) for cmodel in cmodels]
             self.UMLs.update({uml.id: uml for uml in UMLs})
-
             return [uml_.as_dict() for uml_ in UMLs]
 
         @self.app.post("/uml/update")

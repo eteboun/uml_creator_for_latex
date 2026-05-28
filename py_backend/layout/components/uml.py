@@ -59,20 +59,21 @@ class UML:
     def set_positions(self):
 
         sec_x = 0
-        sec_y = self.y_margin
-
+        sec_y = 0
         for s in self.sections:
             s.position = (sec_x, sec_y)
 
+            row_x = self.config.x_margin if s.name != 'title' else self.config.width / 2
+            row_y = self.y_margin
             for row in s.rows:
                 row.height = self.get_row_height(row)
+                row.position = (row_x, row_y + (row.height - self.y_margin) / 2)
 
-                row_x = self.config.x_margin if s.name != 'title' else self.config.width / 2
-                row_y = sec_y + (row.height - self.y_margin) / 2
-
-                row.position = (row_x, row_y)
                 sec_y += row.height
+                row_y += row.height
 
+            row_y += self.y_margin
+            sec_y += self.y_margin
             s.height = sec_y - s.position[1]
 
     def add_to_sections(self):
@@ -86,8 +87,9 @@ class UML:
         }
 
         for section_type in reversed(self.c_model.allowed_section_types):
-            section_name = mapping[section_type]
-            section = Section(name=section_name, config=self.config.sections[section_name])
+
+            cfg_name = mapping[section_type]
+            section = Section(name=section_type, config=self.config.sections[cfg_name])
 
             if section_type == "title":
 
@@ -111,6 +113,9 @@ class UML:
                 section.rows.append(row)
 
             else:
+                if not getattr(self.c_model, section_type):
+                    continue
+
                 items = reversed(getattr(self.c_model, section_type))
                 for item in items:
                     text = t.create_module_text(module=item)

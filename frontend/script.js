@@ -56,8 +56,7 @@ function getShapeConfigPayload(shape) {
 }
 
 function getShapeId(shape) {
-  const config = JSON.parse(shape.dataset.config || "{}");
-  return config.id || shape.dataset.id || shape.dataset.label;
+  return shape.dataset.id;
 }
 
 function getChangedConfigsPayload() {
@@ -99,16 +98,14 @@ function updateSelectionControls() {
   elements.saveConfig.disabled = !hasObjects;
 
   if (hasSelection) {
-    const width = Number(selectedShape.dataset.width);
-    const height = Number(selectedShape.dataset.height);
+    const width = selectedShape.dataset.width;
+    const height =selectedShape.dataset.height;
 
     elements.xLengthControl.value = width;
     elements.yLengthControl.value = height;
     elements.cornerReadout.textContent = `Left bottom: ${selectedShape.dataset.leftBottomX}, ${selectedShape.dataset.leftBottomY}`;
-    elements.sizeReadout.textContent = `Width: ${width.toFixed(2)}, Height: ${height.toFixed(2)}`;
   } else {
     elements.cornerReadout.textContent = "Left bottom: -";
-    elements.sizeReadout.textContent = `Width: -, Height: -`;
   }
 }
 

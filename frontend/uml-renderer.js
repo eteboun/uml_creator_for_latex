@@ -1,9 +1,10 @@
-import { createSvgElement, parseColor, svgYFromBottom } from "./utils.js";
+import { createSvgElement, parseColor, svgYFromBottom, parsePosition } from "./utils.js";
 
 export function createTextRow(row, section, objectConfig) {
+  const position = parsePosition(row.position);
   const text = createSvgElement("text", {
-    x: row.position[0],
-    y: section.height - row.position[1],
+    x: position.x,
+    y: section.height - position.y,
     fill: parseColor(section.config.text_color),
     "font-size": objectConfig.font_size,
     "font-family": "Arial, Helvetica, sans-serif",
@@ -15,7 +16,7 @@ export function createTextRow(row, section, objectConfig) {
 
   row.lines.forEach((line, index) => {
     const tspan = createSvgElement("tspan", {
-      x: row.position[0],
+      x: position.x,
       dy: index === 0 ? firstDy : objectConfig.baseline_skip
     });
     tspan.textContent = line;
@@ -26,14 +27,15 @@ export function createTextRow(row, section, objectConfig) {
 }
 
 export function createSection(section, objectConfig) {
-
+  const position = parsePosition(section.position)
   const group = createSvgElement("g", {
-    class: `uml-section uml-section-${section.name}`
+    class: `uml-section uml-section-${section.name}`,
+    transform: `translate(${position.x}, ${objectConfig.height - (position.y + section.height)})`
   });
 
   group.appendChild(createSvgElement("rect", {
-    x: section.position[0],
-    y: objectConfig.height - (section.position[1] + section.height),
+    x: 0,
+    y: 0,
     width: objectConfig.width,
     height: section.height,
     fill: parseColor(section.config.background_color),
@@ -57,6 +59,7 @@ export function createUmlObject(objectConfig) {
 
   const group = createSvgElement("g", {
     class: "canvas-shape uml-object",
+    transform: `translate(${objectConfig.x}, ${svgYFromBottom(objectConfig.y + objectConfig.height)})`,
     tabindex: "0"
   });
 
