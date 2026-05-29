@@ -96,11 +96,9 @@ export function createUmlObject(objectConfig) {
   group.dataset.font_size = objectConfig.font_size;
   group.dataset.baseline_skip = objectConfig.baseline_skip;
 
-  let boundaryWidth = calculateBoundaryWidth(group);
-  group.dataset.width = Math.max(boundaryWidth, objectConfig.width);
-  group.dataset.boundaryWidth = boundaryWidth;
+  group.dataset.width = objectConfig.width;
 
-  let threshold = calculateWrapperThreshold(group);
+  let threshold = calculateWrapperThreshold(objectConfig.width, objectConfig.font_size, objectConfig.x_margin);
   group.dataset.wrapper_threshold = threshold;
 
   group.appendChild(createSvgElement("rect", {
@@ -117,6 +115,9 @@ export function createUmlObject(objectConfig) {
   let minHeight = calculateMinHeight(group);
   group.dataset.height = Math.max(minHeight, objectConfig.height);
   group.dataset.minHeight = minHeight;
+
+  let boundaryWidth = calculateBoundaryWidth(group);
+  group.dataset.boundaryWidth = boundaryWidth;
 
   setYMargin(group);
   group.dataset.maxFontSize = calculateMaxFontSize(group);
@@ -285,9 +286,9 @@ export function calculateMaxXMargin(umlGroup) {
   return maxMargin;
 }
 
-export function calculateWrapperThreshold(umlGroup) {
-  return (Number(umlGroup.dataset.width) - Number(umlGroup.dataset.x_margin) * 2) /
-           (Number(umlGroup.dataset.font_size) * 0.5).toFixed(1);
+export function calculateWrapperThreshold(width, font_size, x_margin) {
+  return ((width - x_margin * 2) /
+           (font_size * 0.5)).toFixed(1);
 }
 
 export function createLines(content, threshold) {
@@ -315,7 +316,7 @@ export function lookAheadTotalLinesHeight(rows, wrapper_threshold, font_size, ba
 export function updateRowLines(umlGroup) {
   const sections = umlGroup.querySelectorAll(":scope > g");
   sections.forEach((section) => {
-    const rows = section.querySelector(":scope > g");
+    const rows = section.querySelectorAll(":scope > g");
     rows.forEach((row) => {
       row.querySelector(":scope > text").remove();
       const text = createText(umlGroup, section, row);
