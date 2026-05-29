@@ -80,7 +80,13 @@ export function createUmlObject(objectConfig) {
     group.appendChild(createSection(section, objectConfig));
   });
 
-  calculateYMargin(group);
+  let y_margin = calculateYMargin(group);
+  if (y_margin < 0) {
+    group.dataset.height = totalLinesHeight(group);
+    y_margin = 0;
+  }
+  
+  group.dataset.y_margin = y_margin;
   setRelativePositions(group);
   setSelectionBox(group);
 
@@ -103,7 +109,7 @@ export function setRelativePositions(umlGroup) {
       const lines = row.querySelectorAll(":scope > text > tspan");
       const row_height = getRowHeight(umlGroup, lines);
       
-      let real_row_y = row_y + (row_height - Number(umlGroup.dataset.y_margin)) / 2
+      let real_row_y = row_y + (row_height - Number(umlGroup.dataset.y_margin)) / 2;
       row.setAttribute("transform", `translate(${row_x}, ${real_row_y})`);
 
       sec_y += row_height;
@@ -127,28 +133,34 @@ export function setSelectionBox(umlGroup) {
 }
 
 export function calculateYMargin(umlGroup) {
+  let totalLinesHeight = getTotalLinesHeight(umlGroup);
+  let totalPaddings = getTotalPaddings(umlGroup);
+  return (Number(umlGroup.dataset.height) - totalLinesHeight) / totalPaddings;
+}
+
+export function getLinesHeight(umlGroup, lines) {
+  return (lines.length - 1) *
+   Number(umlGroup.dataset.baseline_skip) +
+    Number(umlGroup.dataset.font_size);
+}
+
+export function getTotalLinesHeight(umlGroup) {
   const rows = umlGroup.querySelectorAll(":scope > g > g");
   let totalLinesHeight = 0;
   rows.forEach((row) => {
     const lines = row.querySelectorAll(":scope > text > tspan");
     totalLinesHeight += getLinesHeight(umlGroup, lines)
   })
+  return totalLinesHeight;
+}
 
-  if (Number(umlGroup.dataset.height) < totalLinesHeight) {
-    umlGroup.dataset.height = totalLinesHeight;
-    umlGroup.dataset.y_margin = 0;
-  }
-
+export function getTotalPaddings(umlGroup) {
   let totalPaddings = 0;
   const sections = umlGroup.querySelectorAll(":scope > g");
   sections.forEach((section) => {
     totalPaddings += section.querySelectorAll(":scope > g").length + 1;
   })
-  umlGroup.dataset.y_margin = (Number(umlGroup.dataset.height) - totalLinesHeight) / totalPaddings; 
-}
-
-export function getLinesHeight(umlGroup, lines) {
-  return (lines.length - 1) * Number(umlGroup.dataset.baseline_skip) + Number(umlGroup.dataset.font_size);
+  return totalPaddings;
 }
 
 export function getRowHeight(umlGroup, lines) {
@@ -156,4 +168,28 @@ export function getRowHeight(umlGroup, lines) {
    Number(umlGroup.dataset.baseline_skip) +
     Number(umlGroup.dataset.font_size) +
      Number(umlGroup.dataset.y_margin);
+}
+
+export function setFontSize(umlGroup, font_size) {
+  umlGroup.dataset.font_size = font_size;
+
+  const texts = umlGroup.querySelectorAll(":scope > g > g > text");
+  texts.forEach((text) => {
+    text.setAttribute("font-size", umlGroup.dataset.font_size);
+  })
+}
+
+export function setBaselineSkip(umlGroup) {
+  umlGroup.dataset.baseline_skip = Number(umlGroup.dataset.font_size) * 1.2;
+
+  const rows = umlGroup.querySelectorAll(":scope > g > g");
+  rows.forEach((row) => {
+    const lines = row.querySelectorAll(":scope > text > tspan");
+    const firstDy = -((lines.length - 1) * umlGroup.dataset.baseline_skip) / 2;
+
+    lines.forEach((line, index) => {
+      let dy = index === 0 ? firstDy : Number(umlGroup.dataset.baseline_skip);
+      line.setAttribute("dy", dy);
+  });
+  })
 }

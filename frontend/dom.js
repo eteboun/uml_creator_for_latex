@@ -10,4 +10,6 @@ export const elements = {
   xLengthControl: document.querySelector("#xLengthControl"),
   yLengthControl: document.querySelector("#yLengthControl"),
   cornerReadout: document.querySelector("#cornerReadout"),
+  fontSizeControl: document.querySelector("#fontSizeControl"),
+  xMarginControl: document.querySelector("#xMarginControl")
 };

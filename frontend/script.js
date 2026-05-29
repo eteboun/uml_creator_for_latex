@@ -1,7 +1,7 @@
 import { createUml, deleteUml, updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { createUmlObject, setRelativePositions, calculateYMargin } from "./uml-renderer.js";
+import { createUmlObject, setRelativePositions, calculateYMargin, setFontSize, setBaselineSkip } from "./uml-renderer.js";
 import { clamp, stagePoint, svgYFromBottom } from "./utils.js";
 
 let activeDrag = null;
@@ -91,6 +91,9 @@ function updateSelectionControls() {
   elements.deleteObject.disabled = !hasSelection;
   elements.xLengthControl.disabled = !hasSelection;
   elements.yLengthControl.disabled = !hasSelection;
+  elements.xMarginControl.disabled = !hasSelection;
+  elements.fontSizeControl.disabled = !hasSelection;
+
   elements.saveConfig.disabled = !hasObjects;
 
   if (hasSelection) {
@@ -99,6 +102,8 @@ function updateSelectionControls() {
 
     elements.xLengthControl.value = width;
     elements.yLengthControl.value = height;
+    elements.fontSizeControl.value = selectedShape.dataset.font_size;
+    elements.xMarginControl.value = selectedShape.dataset.x_margin;
     elements.cornerReadout.textContent = `Left bottom: ${selectedShape.dataset.leftBottomX}, ${selectedShape.dataset.leftBottomY}`;
   } else {
     elements.cornerReadout.textContent = "Left bottom: -";
@@ -121,8 +126,8 @@ function setSelectedShape(shape) {
 }
 
 function applySize(shape) {
-  const width = clamp(Number(shape.dataset.width), 1, canvasSize.width);
-  const height = clamp(Number(shape.dataset.height), 1, canvasSize.height);
+  const width = clamp(Number(shape.dataset.width), 1, canvasSize.width - Number(shape.dataset.x));
+  const height = clamp(Number(shape.dataset.height), 1, canvasSize.height - Number(shape.dataset.y));
   shape.dataset.width = width;
   shape.dataset.height = height;
 }
@@ -221,7 +226,6 @@ function bindPageEvents() {
     if (configs.length === 0) return;
 
     const result = await updateUml(configs);
-    console.log(result);
   });
 
   elements.xLengthControl.addEventListener("input", () => {
@@ -229,9 +233,8 @@ function bindPageEvents() {
 
     selectedShape.dataset.width = elements.xLengthControl.value;
     applySize(selectedShape);
-
-    calculateYMargin(selectedShape);
     setRelativePositions(selectedShape);
+
     elements.xLengthControl.value = selectedShape.dataset.width;
   });
 
@@ -239,16 +242,37 @@ function bindPageEvents() {
     if (!selectedShape) return;
 
     let prev_height = Number(selectedShape.dataset.height);
-
     selectedShape.dataset.height = elements.yLengthControl.value;
     applySize(selectedShape);
 
-    calculateYMargin(selectedShape);
-    setRelativePositions(selectedShape);
-    
+    let y_margin = calculateYMargin(selectedShape);
+    if (y_margin < 0) {
+      selectedShape.dataset.height = prev_height;
+    } else {
+      selectedShape.dataset.y_margin = y_margin;
+      setRelativePositions(selectedShape);
+    }
+
     elements.yLengthControl.value = selectedShape.dataset.height;
   });
 
+  elements.fontSizeControl.addEventListener("input", () => {
+    if (!selectedShape) return;
+
+    setFontSize(selectedShape, elements.fontSizeControl.value);
+    setBaselineSkip(selectedShape);
+    calculateYMargin(selectedShape);
+    setRelativePositions(selectedShape);
+  
+  });
+
+  elements.xMarginControl.addEventListener("input", () => {
+    if (!selectedShape) return;
+
+    selectedShape.dataset.x_margin = elements.xMarginControl.value;
+    setRelativePositions(selectedShape);
+    
+  });
   elements.sendCode.addEventListener("click", async () => {
     const umlCFGs = await createUml(elements.javaCode.value);
     renderUmlConfigs(umlCFGs);
