@@ -1,7 +1,7 @@
 import { createUml, deleteUml, updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { createUmlObject, setRelativePositions, calculateYMargin, setFontSize, setBaselineSkip } from "./uml-renderer.js";
+import { createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, calculateMaxFontSize, calculateMaxXMargin, calculateMinHeight, calculateMinWidth } from "./uml-renderer.js";
 import { clamp, stagePoint, svgYFromBottom } from "./utils.js";
 
 let activeDrag = null;
@@ -104,9 +104,19 @@ function updateSelectionControls() {
     elements.yLengthControl.value = height;
     elements.fontSizeControl.value = selectedShape.dataset.font_size;
     elements.xMarginControl.value = selectedShape.dataset.x_margin;
+
     elements.cornerReadout.textContent = `Left bottom: ${selectedShape.dataset.leftBottomX}, ${selectedShape.dataset.leftBottomY}`;
+    elements.widthLabel.textContent = `Width: ${selectedShape.dataset.width}`;
+    elements.heightLabel.textContent = `Height: ${selectedShape.dataset.height}`;
+    elements.fontSizeLabel.textContent = `Font Size: ${selectedShape.dataset.font_size}`;
+    elements.xMarginLabel.textContent = `X Margin: ${selectedShape.dataset.x_margin}`;
+
   } else {
     elements.cornerReadout.textContent = "Left bottom: -";
+    elements.widthLabel.textContent = `Width: -`;
+    elements.heightLabel.textContent = `Height: -`;
+    elements.fontSizeLabel.textContent = `Font Size: -`;
+    elements.xMarginLabel.textContent = `X Margin: -`;
   }
 }
 
@@ -126,8 +136,8 @@ function setSelectedShape(shape) {
 }
 
 function applySize(shape) {
-  const width = clamp(Number(shape.dataset.width), 1, canvasSize.width - Number(shape.dataset.x));
-  const height = clamp(Number(shape.dataset.height), 1, canvasSize.height - Number(shape.dataset.y));
+  const width = clamp(Number(shape.dataset.width), Number(shape.dataset.minWidth), canvasSize.width - Number(shape.dataset.x));
+  const height = clamp(Number(shape.dataset.height), Number(shape.dataset.minHeight), canvasSize.height - Number(shape.dataset.y));
   shape.dataset.width = width;
   shape.dataset.height = height;
 }
@@ -235,43 +245,70 @@ function bindPageEvents() {
     applySize(selectedShape);
     setRelativePositions(selectedShape);
 
+    selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
+    selectedShape.dataset.maxXMargin = calculateMaxXMargin(selectedShape);
+
+    elements.widthLabel.textContent = `Width: ${selectedShape.dataset.width}`;
     elements.xLengthControl.value = selectedShape.dataset.width;
   });
 
   elements.yLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    let prev_height = Number(selectedShape.dataset.height);
     selectedShape.dataset.height = elements.yLengthControl.value;
     applySize(selectedShape);
 
-    let y_margin = calculateYMargin(selectedShape);
-    if (y_margin < 0) {
-      selectedShape.dataset.height = prev_height;
-    } else {
-      selectedShape.dataset.y_margin = y_margin;
-      setRelativePositions(selectedShape);
-    }
+    setYMargin(selectedShape);
+    setRelativePositions(selectedShape);
+
+    selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
 
     elements.yLengthControl.value = selectedShape.dataset.height;
+    elements.heightLabel.textContent = `Height: ${selectedShape.dataset.height}`;
+
   });
 
   elements.fontSizeControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    setFontSize(selectedShape, elements.fontSizeControl.value);
+    const requestedFontSize = Number(elements.fontSizeControl.value);
+    const maxFontSize = Number(selectedShape.dataset.maxFontSize);
+
+    const fontSize = Math.min(requestedFontSize, maxFontSize);
+
+    elements.fontSizeControl.value = fontSize;
+
+    setFontSize(selectedShape, fontSize);
     setBaselineSkip(selectedShape);
-    calculateYMargin(selectedShape);
+    setYMargin(selectedShape);
     setRelativePositions(selectedShape);
-  
+
+    selectedShape.dataset.maxXMargin = calculateMaxXMargin(selectedShape);
+    selectedShape.dataset.minHeight = calculateMinHeight(selectedShape);
+    selectedShape.dataset.minWidth = calculateMinWidth(selectedShape);
+
+    elements.fontSizeLabel.textContent = `Font Size: ${selectedShape.dataset.font_size}`;
+
   });
 
   elements.xMarginControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    selectedShape.dataset.x_margin = elements.xMarginControl.value;
+    const requestedXMargin = Number(elements.xMarginControl.value);
+    const maxXMargin = Number(selectedShape.dataset.maxXMargin);
+
+    const xMargin = Math.min(requestedXMargin, maxXMargin);
+
+    elements.xMarginControl.value = xMargin;
+    selectedShape.dataset.x_margin = xMargin;
+
     setRelativePositions(selectedShape);
-    
+
+    selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
+    selectedShape.dataset.minWidth = calculateMinWidth(selectedShape);
+
+    elements.xMarginLabel.textContent = `X Margin: ${selectedShape.dataset.x_margin}`;
+
   });
   elements.sendCode.addEventListener("click", async () => {
     const umlCFGs = await createUml(elements.javaCode.value);

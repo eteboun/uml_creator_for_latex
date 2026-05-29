@@ -52,7 +52,6 @@ export function createUmlObject(objectConfig) {
   delete objectConfig.config;
 
   let y = svgYFromBottom(objectConfig.y + objectConfig.height);
-
   const group = createSvgElement("g", {
     transform: `translate(${objectConfig.x}, ${y})`,
     class: "canvas-shape uml-object",
@@ -64,8 +63,7 @@ export function createUmlObject(objectConfig) {
   group.dataset.x = objectConfig.x;
   group.dataset.y = y;
   group.dataset.x_margin = objectConfig.x_margin;
-  group.dataset.width = objectConfig.width;
-  group.dataset.height = objectConfig.height;
+
   group.dataset.font_size = objectConfig.font_size;
   group.dataset.baseline_skip = objectConfig.baseline_skip;
 
@@ -80,13 +78,18 @@ export function createUmlObject(objectConfig) {
     group.appendChild(createSection(section, objectConfig));
   });
 
-  let y_margin = calculateYMargin(group);
-  if (y_margin < 0) {
-    group.dataset.height = totalLinesHeight(group);
-    y_margin = 0;
-  }
-  
-  group.dataset.y_margin = y_margin;
+  let minHeight = calculateMinHeight(group);
+  let minWidth = calculateMinWidth(group);
+
+  group.dataset.height = Math.max(minHeight, objectConfig.height);
+  group.dataset.width = Math.max(minWidth, objectConfig.width);
+  group.dataset.minHeight = minHeight;
+  group.dataset.minWidth = minWidth;
+
+  setYMargin(group);
+  group.dataset.maxFontSize = calculateMaxFontSize(group);
+  group.dataset.maxXMargin = calculateMaxXMargin(group);
+
   setRelativePositions(group);
   setSelectionBox(group);
 
@@ -132,10 +135,10 @@ export function setSelectionBox(umlGroup) {
   box.setAttribute("height", Number(umlGroup.dataset.height));
 }
 
-export function calculateYMargin(umlGroup) {
+export function setYMargin(umlGroup) {
   let totalLinesHeight = getTotalLinesHeight(umlGroup);
   let totalPaddings = getTotalPaddings(umlGroup);
-  return (Number(umlGroup.dataset.height) - totalLinesHeight) / totalPaddings;
+  umlGroup.dataset.y_margin = (Number(umlGroup.dataset.height) - totalLinesHeight) / totalPaddings;
 }
 
 export function getLinesHeight(umlGroup, lines) {
@@ -149,7 +152,7 @@ export function getTotalLinesHeight(umlGroup) {
   let totalLinesHeight = 0;
   rows.forEach((row) => {
     const lines = row.querySelectorAll(":scope > text > tspan");
-    totalLinesHeight += getLinesHeight(umlGroup, lines)
+    totalLinesHeight += getLinesHeight(umlGroup, lines);
   })
   return totalLinesHeight;
 }
@@ -192,4 +195,60 @@ export function setBaselineSkip(umlGroup) {
       line.setAttribute("dy", dy);
   });
   })
+}
+
+export function calculateMinWidth(umlGroup) {
+  let minWidth = 0;
+  const font_size = Number(umlGroup.dataset.font_size);
+  const x_margin = Number(umlGroup.dataset.x_margin);
+
+  const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
+  lines.forEach((line) => {
+    let minLineWidth = line.textContent.length *
+     font_size * 0.5 +
+     x_margin * 2;
+    if (minLineWidth > minWidth) minWidth = minLineWidth;
+  })
+
+  return minWidth;
+}
+
+export function calculateMinHeight(umlGroup) {
+  return getTotalLinesHeight(umlGroup);
+}
+
+export function calculateMaxFontSize(umlGroup) {
+  const height = Number(umlGroup.dataset.height);
+  const width = Number(umlGroup.dataset.width);
+  const x_margin = Number(umlGroup.dataset.x_margin);
+
+  const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
+  const rows = umlGroup.querySelectorAll(":scope > g > g");
+
+  let maxFontX = Infinity;
+  lines.forEach((line) => {
+    let currentMax = (width - x_margin * 2) /
+     (line.textContent.length * 0.5);
+    
+    if (currentMax < maxFontX) maxFontX = currentMax;
+  })
+
+  let maxFontY = (height / (lines.length * 1.2 - rows.length * 0.2));
+
+  return Math.min(maxFontX, maxFontY);
+}
+
+export function calculateMaxXMargin(umlGroup) {
+  let maxMargin = Infinity;
+  const width = Number(umlGroup.dataset.width);
+  const font_size = Number(umlGroup.dataset.font_size);
+
+  const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
+  lines.forEach((line) => {
+    let currentMax = (width - line.textContent.length * font_size * 0.5) / 2;
+    
+    if (currentMax < maxMargin) maxMargin = currentMax;
+  })
+
+  return maxMargin;
 }
