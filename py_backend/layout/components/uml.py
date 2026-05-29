@@ -25,10 +25,8 @@ class UML:
         if not isinstance(self.c_model, cm.Base):
             raise TypeError("c_model must be a subclass instance of Base")
 
-        char_width = 0.6 * self.config.font_size
-        self.wrapper_threshold = int((self.config.width - 2 * self.config.x_margin) / char_width)
-        self.id = f"uml_{uuid4().hex[:8]}"
 
+        self.id = f"uml_{uuid4().hex[:8]}"
         self.add_to_sections()
 
     def add_to_sections(self):
@@ -51,18 +49,13 @@ class UML:
                 text = t.create_title_text(self.c_model)
                 content = [text]
 
-                lines = t.text_wrapper(text, threshold=self.wrapper_threshold)
                 if self.c_model.stereotype is not None:
                     content.insert(0, self.c_model.stereotype)
-
-                    s_lines = t.text_wrapper(self.c_model.stereotype, threshold=self.wrapper_threshold)
-                    lines = s_lines + lines
 
                 row = Row(
                     anchor="center",
                     align="center",
                     content=content,
-                    lines=lines,
                 )
 
                 section.rows.append(row)
@@ -75,13 +68,11 @@ class UML:
                 for item in items:
                     text = t.create_module_text(module=item)
 
-                    lines = t.text_wrapper(text, threshold=self.wrapper_threshold)
 
                     new_row = Row(
                         anchor="west",
                         align="left",
                         content=[text],
-                        lines=lines,
                     )
 
                     section.rows.append(new_row)

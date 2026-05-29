@@ -1,8 +1,8 @@
 import { createUml, deleteUml, updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, calculateMaxFontSize, calculateMaxXMargin, calculateMinHeight, calculateMinWidth } from "./uml-renderer.js";
-import { clamp, stagePoint, svgYFromBottom } from "./utils.js";
+import { createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, calculateMaxFontSize, calculateMaxXMargin, calculateMinHeight, calculateBoundaryWidth } from "./uml-renderer.js";
+import { clamp, stagePoint, svgYFromBottom, nDigits } from "./utils.js";
 
 let activeDrag = null;
 let selectedShape = null;
@@ -105,11 +105,11 @@ function updateSelectionControls() {
     elements.fontSizeControl.value = selectedShape.dataset.font_size;
     elements.xMarginControl.value = selectedShape.dataset.x_margin;
 
-    elements.cornerReadout.textContent = `Left bottom: ${selectedShape.dataset.leftBottomX}, ${selectedShape.dataset.leftBottomY}`;
-    elements.widthLabel.textContent = `Width: ${selectedShape.dataset.width}`;
-    elements.heightLabel.textContent = `Height: ${selectedShape.dataset.height}`;
-    elements.fontSizeLabel.textContent = `Font Size: ${selectedShape.dataset.font_size}`;
-    elements.xMarginLabel.textContent = `X Margin: ${selectedShape.dataset.x_margin}`;
+    elements.cornerReadout.textContent = `Left bottom: ${nDigits(selectedShape.dataset.leftBottomX)}, ${nDigits(selectedShape.dataset.leftBottomY)}`;
+    elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
+    elements.heightLabel.textContent = `Height: ${nDigits(selectedShape.dataset.height)}`;
+    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.font_size)}`;
+    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.x_margin)}`;
 
   } else {
     elements.cornerReadout.textContent = "Left bottom: -";
@@ -136,7 +136,7 @@ function setSelectedShape(shape) {
 }
 
 function applySize(shape) {
-  const width = clamp(Number(shape.dataset.width), Number(shape.dataset.minWidth), canvasSize.width - Number(shape.dataset.x));
+  const width = clamp(Number(shape.dataset.width), Number(shape.dataset.boundaryWidth), canvasSize.width - Number(shape.dataset.x));
   const height = clamp(Number(shape.dataset.height), Number(shape.dataset.minHeight), canvasSize.height - Number(shape.dataset.y));
   shape.dataset.width = width;
   shape.dataset.height = height;
@@ -248,7 +248,7 @@ function bindPageEvents() {
     selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
     selectedShape.dataset.maxXMargin = calculateMaxXMargin(selectedShape);
 
-    elements.widthLabel.textContent = `Width: ${selectedShape.dataset.width}`;
+    elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
     elements.xLengthControl.value = selectedShape.dataset.width;
   });
 
@@ -264,7 +264,7 @@ function bindPageEvents() {
     selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
 
     elements.yLengthControl.value = selectedShape.dataset.height;
-    elements.heightLabel.textContent = `Height: ${selectedShape.dataset.height}`;
+    elements.heightLabel.textContent = `Height: ${nDigits(selectedShape.dataset.height)}`;
 
   });
 
@@ -285,9 +285,9 @@ function bindPageEvents() {
 
     selectedShape.dataset.maxXMargin = calculateMaxXMargin(selectedShape);
     selectedShape.dataset.minHeight = calculateMinHeight(selectedShape);
-    selectedShape.dataset.minWidth = calculateMinWidth(selectedShape);
+    selectedShape.dataset.boundaryWidth = calculateBoundaryWidth(selectedShape);
 
-    elements.fontSizeLabel.textContent = `Font Size: ${selectedShape.dataset.font_size}`;
+    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.font_size)}`;
 
   });
 
@@ -305,9 +305,9 @@ function bindPageEvents() {
     setRelativePositions(selectedShape);
 
     selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
-    selectedShape.dataset.minWidth = calculateMinWidth(selectedShape);
+    selectedShape.dataset.boundaryWidth = calculateBoundaryWidth(selectedShape);
 
-    elements.xMarginLabel.textContent = `X Margin: ${selectedShape.dataset.x_margin}`;
+    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.x_margin)}`;
 
   });
   elements.sendCode.addEventListener("click", async () => {
