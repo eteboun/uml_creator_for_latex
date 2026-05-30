@@ -1,7 +1,11 @@
 import { createSvgElement, parseColor, svgYFromBottom, textWrapper } from "./utils.js";
+import { elements } from "./dom.js";
 
 const umlRows = new Map();
 const umlSections = new Map();
+const umlSavedStates = new Map();
+
+let factor = null;
 
 export function createRow(umlGroup, sectionGroup, row) {
   const rowGroup = createSvgElement("g", {});
@@ -25,7 +29,7 @@ export function createText(umlGroup, sectionGroup, rowGroup) {
   const text = createSvgElement("text", {
     fill: parseColor(sectionObj.text_color),
     "font-size": umlGroup.dataset.font_size,
-    "font-family": "Arial, Helvetica, sans-serif",
+    "font-family": "monospace",
     "dominant-baseline": "middle",
     "text-anchor": rowGroup.dataset.anchor === "center" ? "middle" : "start"
   });
@@ -95,11 +99,11 @@ export function createUmlObject(objectConfig) {
 
   group.dataset.font_size = objectConfig.font_size;
   group.dataset.baseline_skip = objectConfig.baseline_skip;
+  factor = calculateCharWidthFactor(objectConfig.font_size);
 
   group.dataset.width = objectConfig.width;
-
-  let threshold = calculateWrapperThreshold(objectConfig.width, objectConfig.font_size, objectConfig.x_margin);
-  group.dataset.wrapper_threshold = threshold;
+  group.dataset.height = objectConfig.height;
+  setWrapperThreshold(group);
 
   group.appendChild(createSvgElement("rect", {
     class: "selection-rect",
@@ -112,19 +116,13 @@ export function createUmlObject(objectConfig) {
     group.appendChild(createSection(group, section));
   });
 
-  let minHeight = calculateMinHeight(group);
-  group.dataset.height = Math.max(minHeight, objectConfig.height);
-  group.dataset.minHeight = minHeight;
-
-  let maxTotalLinesCount = Number(group.dataset.height) / Number(group.dataset.baseline_skip);
-  group.dataset.maxTotalLinesCount = maxTotalLinesCount;
-
-  let boundaryWidth = calculateBoundaryWidth(group);
-  group.dataset.boundaryWidth = boundaryWidth;
-
+  setMinHeight(group);
+  setMaxTotalLinesCount(group);
+  setBoundaryWidth(group);
+  setIsOutOfBoundaryWidth(group);
   setYMargin(group);
-  group.dataset.maxFontSize = calculateMaxFontSize(group);
-  group.dataset.maxXMargin = calculateMaxXMargin(group);
+  setMaxFontSize(group);
+  setMaxXMargin(group);
 
   setRelativePositions(group);
   setSelectionBox(group);
@@ -233,33 +231,47 @@ export function setBaselineSkip(umlGroup) {
   })
 }
 
-export function calculateBoundaryWidth(umlGroup) {
-  let boundaryWidth = 0;
-  const font_size = Number(umlGroup.dataset.font_size);
+export function setBoundaryWidth(umlGroup) {
   const x_margin = Number(umlGroup.dataset.x_margin);
-
   const rows = umlGroup.querySelectorAll(":scope > g > g");
+  let longestSeqLen = 0;
+  let longestSeq = "";
   rows.forEach((row) => {
     const rowObj = getRowById(row.dataset.id);
     const content = rowObj.content;
-
-    content.forEach((line) => {
-      let lineWidth = line.length *
-       font_size * 0.5 +
-        x_margin * 2;
-
-      if (lineWidth > boundaryWidth) boundaryWidth = lineWidth;
+    
+    content.forEach((line) => {      
+      if (line.length > longestSeqLen) {
+        longestSeq = line;
+        longestSeqLen = line.length;
+      }
     })
   })
 
-  return boundaryWidth;
+  const tempText = createSvgElement("text", {
+    "font-size": umlGroup.dataset.font_size,
+    "font-family": "monospace",
+    visibility: "hidden"
+  });
+  const tempTSpan = createSvgElement("tspan", {});
+  tempTSpan.textContent = longestSeq;
+  tempText.appendChild(tempTSpan);
+
+  elements.canvasSvg.appendChild(tempText);
+  const textWidth = tempTSpan.getComputedTextLength();
+  const boundaryWidth = textWidth + x_margin * 2;
+  tempText.remove();
+
+  umlGroup.dataset.boundaryWidth = boundaryWidth;
 }
 
-export function calculateMinHeight(umlGroup) {
-  return getTotalLinesHeight(umlGroup);
+export function setMinHeight(umlGroup) {
+  let minHeight = getTotalLinesHeight(umlGroup);
+  umlGroup.dataset.minHeight = minHeight;
+  umlGroup.dataset.height = Math.max(Number(umlGroup.dataset.height), minHeight);
 }
 
-export function calculateMaxFontSize(umlGroup) {
+export function setMaxFontSize(umlGroup) {
   const height = Number(umlGroup.dataset.height);
   const width = Number(umlGroup.dataset.width);
   const x_margin = Number(umlGroup.dataset.x_margin);
@@ -269,35 +281,39 @@ export function calculateMaxFontSize(umlGroup) {
 
   let maxFontX = Infinity;
   lines.forEach((line) => {
-    let currentMax = (width - x_margin * 2) /
-     (line.textContent.length * 0.5);
-    
+    let currentMax = line.getComputedTextLength() /
+                  (line.textContent.length * factor);
+
     if (currentMax < maxFontX) maxFontX = currentMax;
   })
 
   let maxFontY = (height / (lines.length * 1.2 - rows.length * 0.2));
 
-  return Math.min(maxFontX, maxFontY);
+  umlGroup.dataset.maxFontSize = Math.min(maxFontX, maxFontY);
 }
 
-export function calculateMaxXMargin(umlGroup) {
+export function setMaxXMargin(umlGroup) {
   let maxMargin = Infinity;
   const width = Number(umlGroup.dataset.width);
   const font_size = Number(umlGroup.dataset.font_size);
 
   const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
   lines.forEach((line) => {
-    let currentMax = (width - line.textContent.length * font_size * 0.5) / 2;
+    let currentMax = (width - line.getComputedTextLength()) / 2;
     
     if (currentMax < maxMargin) maxMargin = currentMax;
   })
 
-  return maxMargin;
+  umlGroup.dataset.maxXMargin = maxMargin;
+}
+
+export function setWrapperThreshold(umlGroup) {
+  umlGroup.dataset.wrapper_threshold = calculateWrapperThreshold(Number(umlGroup.dataset.width), Number(umlGroup.dataset.font_size), Number(umlGroup.dataset.x_margin));
 }
 
 export function calculateWrapperThreshold(width, font_size, x_margin) {
-  return Math.round((width - x_margin * 2) /
-           (font_size * 0.5));
+  return Math.floor((width - x_margin * 2) /
+           (font_size * factor));
 }
 
 export function createLines(content, threshold) {
@@ -312,7 +328,7 @@ export function getSectionById(id) {
   return umlSections.get(id);
 }
 
-export function lookAheadTotalLinesCount(rows, wrapper_threshold) {
+export function calculateTotalLinesCount(rows, wrapper_threshold) {
   let totalLinesCount = 0;
   rows.forEach((row) => {
     const rowObj = getRowById(row.dataset.id);
@@ -339,11 +355,60 @@ export function calculateMinLineWidth(umlGroup) {
   let minWidth = 0;
   const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
   lines.forEach((line) => {
-    let lineWidth = line.textContent.length *
-     Number(umlGroup.dataset.font_size) * 0.5 +
-      Number(umlGroup.dataset.x_margin) * 2;
+    let lineWidth = line.getComputedTextLength() +
+            Number(umlGroup.dataset.x_margin) * 2;
     
     if (lineWidth > minWidth) minWidth = lineWidth;
   })
   return minWidth;
+}
+
+export function calculateNextWrapperThreshold(width, font_size, x_margin) {
+  const startingThreshold = calculateWrapperThreshold(width, font_size, x_margin);
+
+  for (let currentWidth = width; currentWidth >= 0; currentWidth -= 0.01) {
+    const threshold = calculateWrapperThreshold(currentWidth, font_size, x_margin);
+
+    if (threshold !== startingThreshold) {
+      return threshold;
+    }
+  }
+
+  return startingThreshold;
+}
+
+export function setMaxTotalLinesCount(umlGroup) {
+  umlGroup.dataset.maxTotalLinesCount = Number(umlGroup.dataset.height) / Number(umlGroup.dataset.baseline_skip);
+}
+
+export function setIsOutOfBoundaryWidth(umlGroup) {
+  umlGroup.dataset.isOutOfBoundaryWidth = Number(umlGroup.dataset.width) > Number(umlGroup.dataset.boundaryWidth);
+}
+
+export function calculateCharWidthFactor(font_size) {
+  const sample = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("font-size", font_size);
+  text.setAttribute("font-family", "monospace");
+  text.setAttribute("visibility", "hidden");
+  text.textContent = sample;
+
+  elements.canvasSvg.appendChild(text);
+  const width = text.getComputedTextLength();
+  const factor = width / (font_size * sample.length);
+  text.remove();
+
+  return factor;
+}
+
+export function loadSavedStateById(umlGroup) {
+  const id = umlGroup.dataset.id;
+  const save = umlSavedStates.get(id);
+
+  umlGroup.dataset.width = save.width;
+  umlGroup.dataset.wrapper_threshold = save.wrapper_threshold;
+
+  updateRowLines(umlGroup);
+  
 }
