@@ -1,7 +1,7 @@
 import { createUml, deleteUml, updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, setMaxFontSize, setMaxXMargin, setMinHeight, setBoundaryWidth, calculateWrapperThreshold, calculateTotalLinesCount as calculateTotalLinesCount, updateRowLines, calculateMinLineWidth, calculateNextWrapperThreshold, setMaxTotalLinesCount, setWrapperThreshold, setIsOutOfBoundaryWidth } from "./uml-renderer.js";
+import { umlSavedStates, createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, setMaxFontSize, setMaxXMargin, setMinHeight, setBoundaryWidth, calculateWrapperThreshold, calculateTotalLinesCount as calculateTotalLinesCount, updateRowLines, calculateMinLineWidth, setMaxTotalLinesCount, setWrapperThreshold, setIsOutOfBoundaryWidth, loadSavedState, saveCurrentState } from "./uml-renderer.js";
 import { clamp, stagePoint, svgYFromBottom, nDigits } from "./utils.js";
 
 let activeDrag = null;
@@ -243,7 +243,7 @@ function bindPageEvents() {
     
     const width = Number(selectedShape.dataset.width);
     let nextWidth = Number(elements.xLengthControl.value);
-    nextWidth = clamp(nextWidth, 1, canvasSize.width - Number(selectedShape.dataset.x));
+    nextWidth = clamp(nextWidth, 1, canvasSize.width - Number(selectedShape.dataset.x));    
 
     let dir = nextWidth > Number(selectedShape.dataset.width) ? "+" : "-";
     const font_size = Number(selectedShape.dataset.font_size);
@@ -254,14 +254,14 @@ function bindPageEvents() {
       const baseline_skip = Number(selectedShape.dataset.baseline_skip);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 
-      let nextWrapperThreshold = calculateNextWrapperThreshold(width, font_size, x_margin);
+      let nextWrapperThreshold = calculateWrapperThreshold(nextWidth, font_size, x_margin);
       nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
       
       let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);
 
-      if (newTotalLinesCount > maxTotalLinesCount) {
-        const minLineWidth = calculateMinLineWidth(selectedShape);
-        selectedShape.dataset.width = minLineWidth;
+      if (newTotalLinesCount > maxTotalLinesCount) {                        
+        loadSavedState(selectedShape);
+        updateRowLines(selectedShape);
       } else {
         selectedShape.dataset.width = nextWidth;
         setWrapperThreshold(selectedShape);
@@ -281,6 +281,8 @@ function bindPageEvents() {
     setMaxXMargin(selectedShape);
     setMinHeight(selectedShape);
     setIsOutOfBoundaryWidth(selectedShape);
+
+    saveCurrentState(selectedShape);    
 
     elements.xLengthControl.value = selectedShape.dataset.width;
     elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;

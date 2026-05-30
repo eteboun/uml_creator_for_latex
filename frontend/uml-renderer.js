@@ -3,7 +3,7 @@ import { elements } from "./dom.js";
 
 const umlRows = new Map();
 const umlSections = new Map();
-const umlSavedStates = new Map();
+export const umlSavedStates = new Map();
 
 let factor = null;
 
@@ -105,13 +105,6 @@ export function createUmlObject(objectConfig) {
   group.dataset.height = objectConfig.height;
   setWrapperThreshold(group);
 
-  group.appendChild(createSvgElement("rect", {
-    class: "selection-rect",
-    x: -0.2,
-    y: 0.2,
-    fill: "none"
-  }));
-
   objectConfig.sections.forEach((section) => {
     group.appendChild(createSection(group, section));
   });
@@ -125,7 +118,8 @@ export function createUmlObject(objectConfig) {
   setMaxXMargin(group);
 
   setRelativePositions(group);
-  setSelectionBox(group);
+
+  saveCurrentState(group);
 
   return group;
 }
@@ -161,12 +155,6 @@ export function setRelativePositions(umlGroup) {
     section_rect.setAttribute("height", section_height);
     section_rect.setAttribute("width", Number(umlGroup.dataset.width));
   })
-}
-
-export function setSelectionBox(umlGroup) {
-  const box = umlGroup.querySelector(":scope > rect");
-  box.setAttribute("width", Number(umlGroup.dataset.width));
-  box.setAttribute("height", Number(umlGroup.dataset.height));
 }
 
 export function setYMargin(umlGroup) {
@@ -363,20 +351,6 @@ export function calculateMinLineWidth(umlGroup) {
   return minWidth;
 }
 
-export function calculateNextWrapperThreshold(width, font_size, x_margin) {
-  const startingThreshold = calculateWrapperThreshold(width, font_size, x_margin);
-
-  for (let currentWidth = width; currentWidth >= 0; currentWidth -= 0.01) {
-    const threshold = calculateWrapperThreshold(currentWidth, font_size, x_margin);
-
-    if (threshold !== startingThreshold) {
-      return threshold;
-    }
-  }
-
-  return startingThreshold;
-}
-
 export function setMaxTotalLinesCount(umlGroup) {
   umlGroup.dataset.maxTotalLinesCount = Number(umlGroup.dataset.height) / Number(umlGroup.dataset.baseline_skip);
 }
@@ -402,13 +376,20 @@ export function calculateCharWidthFactor(font_size) {
   return factor;
 }
 
-export function loadSavedStateById(umlGroup) {
+export function loadSavedState(umlGroup) {
   const id = umlGroup.dataset.id;
   const save = umlSavedStates.get(id);
 
   umlGroup.dataset.width = save.width;
-  umlGroup.dataset.wrapper_threshold = save.wrapper_threshold;
+  umlGroup.dataset.wrapper_threshold = save.wrapper_threshold;  
+}
 
-  updateRowLines(umlGroup);
-  
+export function saveCurrentState(umlGroup) {
+  const id = umlGroup.dataset.id;
+  const save = umlSavedStates.get(id);  
+
+  umlSavedStates.set(id, {
+    width: Number(umlGroup.dataset.width),
+    wrapper_threshold: Number(umlGroup.dataset.wrapper_threshold),
+  });
 }

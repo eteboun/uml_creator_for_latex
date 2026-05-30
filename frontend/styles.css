@@ -394,18 +394,6 @@ main {
   cursor: grabbing;
 }
 
-.canvas-svg .selection-rect {
-  display: none;
-  stroke: var(--accent);
-  stroke-width: .04;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
-.canvas-svg .canvas-shape.selected .selection-rect {
-  display: block;
-}
-
 .stage.has-items .drop-hint {
   display: none;
 }
