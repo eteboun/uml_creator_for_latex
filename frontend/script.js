@@ -1,7 +1,18 @@
-import { createUml, deleteUml, updateUml } from "./api.js";
+import { createUml, deleteUml,
+   updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { umlSavedStates, createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, setMaxFontSize, setMaxXMargin, setMinHeight, setBoundaryWidth, calculateWrapperThreshold, calculateTotalLinesCount as calculateTotalLinesCount, updateRowLines, calculateMinLineWidth, setMaxTotalLinesCount, setWrapperThreshold, setIsOutOfBoundaryWidth, loadSavedState, saveCurrentState } from "./uml-renderer.js";
+import { umlSavedStates, createUmlObject,
+   updateRowLines, loadSavedState,
+    saveCurrentState } from "./renderer/uml-renderer.js";
+import { setBaselineSkip, setFontSize,
+   setRelativePositions, setYMargin,
+    setMaxFontSize, setMaxXMargin,
+     setMinHeight, setBoundaryWidth,
+      setMaxTotalLinesCount, setWrapperThreshold,
+       setIsOutOfBoundaryWidth} from "./renderer/setters.js";
+import { calculateWrapperThreshold, calculateTotalLinesCount,
+   calculateMinLineWidth } from "./renderer/calculators.js";
 import { clamp, stagePoint, svgYFromBottom, nDigits } from "./utils.js";
 
 let activeDrag = null;
