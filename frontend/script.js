@@ -1,11 +1,12 @@
 import { createUml, deleteUml, updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, calculateMaxFontSize, calculateMaxXMargin, calculateMinHeight, calculateBoundaryWidth, calculateWrapperThreshold, lookAheadTotalLinesHeight, updateRowLines } from "./uml-renderer.js";
+import { createUmlObject, setRelativePositions, setYMargin, setFontSize, setBaselineSkip, calculateMaxFontSize, calculateMaxXMargin, calculateMinHeight, calculateBoundaryWidth, calculateWrapperThreshold, lookAheadTotalLinesCount, updateRowLines, calculateMinLineWidth } from "./uml-renderer.js";
 import { clamp, stagePoint, svgYFromBottom, nDigits } from "./utils.js";
 
 let activeDrag = null;
 let selectedShape = null;
+let isOutOfBoundaryWidth = false;
 
 function shapeSizeInCanvasUnits(shape) {
   return {
@@ -241,39 +242,53 @@ function bindPageEvents() {
   elements.xLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    if (Number(elements.xLengthControl.value) <= Number(selectedShape.dataset.boundaryWidth)) {
-      const width = Number(selectedShape.dataset.width);
-      const height = Number(selectedShape.dataset.height);
-      const font_size = Number(selectedShape.dataset.font_size);
-      const baseline_skip = Number(selectedShape.dataset.baseline_skip);
-      const x_margin = Number(selectedShape.dataset.x_margin);
-      const rows = selectedShape.querySelectorAll(":scope > g > g");
+    let nextWidth = Number(elements.xLengthControl.value);
+    nextWidth = clamp(nextWidth, 1, canvasSize.width - Number(selectedShape.dataset.x));
 
-      let newWrapperThreshold = calculateWrapperThreshold(width, font_size, x_margin);
-      let newTotalLinesHeight = lookAheadTotalLinesHeight(rows, newWrapperThreshold, font_size, baseline_skip);
-      if (newTotalLinesHeight > height) {
-        elements.xLengthControl.value = selectedShape.dataset.boundaryWidth;
-        return;
-      } 
-    }
-
-    selectedShape.dataset.width = elements.xLengthControl.value;
-    const width = Number(selectedShape.dataset.width);
     const font_size = Number(selectedShape.dataset.font_size);
     const x_margin = Number(selectedShape.dataset.x_margin);
-    selectedShape.dataset.wrapper_threshold = calculateWrapperThreshold(width, font_size, x_margin);
 
-    applySize(selectedShape);
-    updateRowLines(selectedShape);
+    if (Number(elements.xLengthControl.value) <= Number(selectedShape.dataset.boundaryWidth)) {
+      isOutOfBoundaryWidth = false;
+      
+      const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
+      const baseline_skip = Number(selectedShape.dataset.baseline_skip);
+      const rows = selectedShape.querySelectorAll(":scope > g > g");
+
+      let newWrapperThreshold = calculateWrapperThreshold(nextWidth, font_size, x_margin);
+      newWrapperThreshold = Math.max(newWrapperThreshold, 1);
+      
+      let newTotalLinesCount = lookAheadTotalLinesCount(rows, newWrapperThreshold);
+
+      if (newTotalLinesCount > maxTotalLinesCount) {
+        const minLineWidth = calculateMinLineWidth(selectedShape);
+        selectedShape.dataset.width = minLineWidth;
+      } else {
+
+        const width = nextWidth;
+        selectedShape.dataset.width = width;
+        selectedShape.dataset.wrapper_threshold = calculateWrapperThreshold(width, font_size, x_margin);
+        updateRowLines(selectedShape);
+      }
+    } else {
+      const width = nextWidth;
+      selectedShape.dataset.width = width;
+      if (!isOutOfBoundaryWidth) {
+        isOutOfBoundaryWidth = true;
+
+        selectedShape.dataset.wrapper_threshold = calculateWrapperThreshold(width, font_size, x_margin);
+        updateRowLines(selectedShape);
+      }
+    }
+
     setYMargin(selectedShape);
     setRelativePositions(selectedShape);
-
+    
     selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
     selectedShape.dataset.maxXMargin = calculateMaxXMargin(selectedShape);
-    selectedShape.dataset.boundaryWidth = calculateBoundaryWidth(selectedShape);
 
-    elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
     elements.xLengthControl.value = selectedShape.dataset.width;
+    elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
   });
 
   elements.yLengthControl.addEventListener("input", () => {
@@ -300,8 +315,6 @@ function bindPageEvents() {
 
     const fontSize = Math.min(requestedFontSize, maxFontSize);
 
-    elements.fontSizeControl.value = fontSize;
-
     setFontSize(selectedShape, fontSize);
     setBaselineSkip(selectedShape);
     setYMargin(selectedShape);
@@ -311,6 +324,7 @@ function bindPageEvents() {
     selectedShape.dataset.minHeight = calculateMinHeight(selectedShape);
     selectedShape.dataset.boundaryWidth = calculateBoundaryWidth(selectedShape);
 
+    elements.fontSizeControl.value = fontSize;
     elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.font_size)}`;
 
   });
@@ -323,14 +337,15 @@ function bindPageEvents() {
 
     const xMargin = Math.min(requestedXMargin, maxXMargin);
 
-    elements.xMarginControl.value = xMargin;
     selectedShape.dataset.x_margin = xMargin;
 
     setRelativePositions(selectedShape);
 
     selectedShape.dataset.maxFontSize = calculateMaxFontSize(selectedShape);
     selectedShape.dataset.boundaryWidth = calculateBoundaryWidth(selectedShape);
+    selectedShape.dataset.wrapper_threshold = calculateWrapperThreshold(selectedShape);
 
+    elements.xMarginControl.value = xMargin;
     elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.x_margin)}`;
 
   });

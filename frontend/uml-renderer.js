@@ -116,6 +116,9 @@ export function createUmlObject(objectConfig) {
   group.dataset.height = Math.max(minHeight, objectConfig.height);
   group.dataset.minHeight = minHeight;
 
+  let maxTotalLinesCount = Number(group.dataset.height) / Number(group.dataset.baseline_skip);
+  group.dataset.maxTotalLinesCount = maxTotalLinesCount;
+
   let boundaryWidth = calculateBoundaryWidth(group);
   group.dataset.boundaryWidth = boundaryWidth;
 
@@ -235,12 +238,18 @@ export function calculateBoundaryWidth(umlGroup) {
   const font_size = Number(umlGroup.dataset.font_size);
   const x_margin = Number(umlGroup.dataset.x_margin);
 
-  const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
-  lines.forEach((line) => {
-    let lineWidth = line.textContent.length *
-     font_size * 0.5 +
-     x_margin * 2;
-    if (lineWidth > boundaryWidth) boundaryWidth = lineWidth;
+  const rows = umlGroup.querySelectorAll(":scope > g > g");
+  rows.forEach((row) => {
+    const rowObj = getRowById(row.dataset.id);
+    const content = rowObj.content;
+
+    content.forEach((line) => {
+      let lineWidth = line.length *
+       font_size * 0.5 +
+        x_margin * 2;
+
+      if (lineWidth > boundaryWidth) boundaryWidth = lineWidth;
+    })
   })
 
   return boundaryWidth;
@@ -287,8 +296,8 @@ export function calculateMaxXMargin(umlGroup) {
 }
 
 export function calculateWrapperThreshold(width, font_size, x_margin) {
-  return ((width - x_margin * 2) /
-           (font_size * 0.5)).toFixed(1);
+  return Math.round((width - x_margin * 2) /
+           (font_size * 0.5));
 }
 
 export function createLines(content, threshold) {
@@ -303,14 +312,14 @@ export function getSectionById(id) {
   return umlSections.get(id);
 }
 
-export function lookAheadTotalLinesHeight(rows, wrapper_threshold, font_size, baseline_skip) {
-  let totalLinesHeight = 0;
+export function lookAheadTotalLinesCount(rows, wrapper_threshold) {
+  let totalLinesCount = 0;
   rows.forEach((row) => {
     const rowObj = getRowById(row.dataset.id);
     const lines = createLines(rowObj.content, wrapper_threshold);
-    totalLinesHeight += getLinesHeight(lines, font_size, baseline_skip);
+    totalLinesCount += lines.length;
   })
-  return totalLinesHeight;
+  return totalLinesCount;
 }
 
 export function updateRowLines(umlGroup) {
@@ -326,3 +335,15 @@ export function updateRowLines(umlGroup) {
   })
 }
 
+export function calculateMinLineWidth(umlGroup) {
+  let minWidth = 0;
+  const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
+  lines.forEach((line) => {
+    let lineWidth = line.textContent.length *
+     Number(umlGroup.dataset.font_size) * 0.5 +
+      Number(umlGroup.dataset.x_margin) * 2;
+    
+    if (lineWidth > minWidth) minWidth = lineWidth;
+  })
+  return minWidth;
+}
