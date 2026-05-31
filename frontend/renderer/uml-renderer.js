@@ -2,11 +2,11 @@ import { createSvgElement, parseColor,
    svgYFromBottom, textWrapper } from "../utils.js";
 import { elements } from "../dom.js";
 import { calculateCharWidthFactor } from "./calculators.js";
-import { setBoundaryWidth, setIsOutOfBoundaryWidth,
-  setMaxFontSize, setMaxTotalLinesCount,
-  setMaxXMargin, setMinHeight,
-  setRelativePositions, setWrapperThreshold,
-  setYMargin
+import { setBoundaryFontSize, setBoundaryWidth, setBoundaryXMargin, setIsOutOfBoundaryFontSize, setIsOutOfBoundaryWidth,
+  setIsOutOfBoundaryXMargin,
+  setMaxTotalLinesCount,
+  setRelativePositions, setTextFontSize, setTotalLinesCount, setWrapperThreshold,
+  setYMargin,
  } from "./setters.js";
 
 const umlRows = new Map();
@@ -36,7 +36,6 @@ export function createText(umlGroup, sectionGroup, rowGroup) {
 
   const text = createSvgElement("text", {
     fill: parseColor(sectionObj.text_color),
-    "font-size": umlGroup.dataset.font_size,
     "font-family": "monospace",
     "dominant-baseline": "middle",
     "text-anchor": rowGroup.dataset.anchor === "center" ? "middle" : "start"
@@ -44,13 +43,8 @@ export function createText(umlGroup, sectionGroup, rowGroup) {
 
   const lines = createLines(rowObj.content, Number(umlGroup.dataset.wrapper_threshold));
 
-  const baseline_skip = Number(umlGroup.dataset.baseline_skip);
-  const firstDy = -((lines.length - 1) * baseline_skip) / 2;
   lines.forEach((line, index) => {
-    const tspan = createSvgElement("tspan", {
-      x: 0,
-      dy: index === 0 ? firstDy : baseline_skip
-    });
+    const tspan = createSvgElement("tspan", {});
     tspan.textContent = line;
     text.appendChild(tspan);
   });
@@ -106,7 +100,8 @@ export function createUmlObject(objectConfig) {
   group.dataset.x_margin = objectConfig.x_margin;
 
   group.dataset.font_size = objectConfig.font_size;
-  group.dataset.baseline_skip = objectConfig.baseline_skip;
+  group.dataset.baseline_skip = objectConfig.font_size * 1.2;
+
   factor = calculateCharWidthFactor(objectConfig.font_size);
 
   group.dataset.width = objectConfig.width;
@@ -116,14 +111,19 @@ export function createUmlObject(objectConfig) {
   objectConfig.sections.forEach((section) => {
     group.appendChild(createSection(group, section));
   });
-
-  setMinHeight(group);
+  
+  setTextFontSize(group);
   setMaxTotalLinesCount(group);
+
   setBoundaryWidth(group);
   setIsOutOfBoundaryWidth(group);
+  setBoundaryFontSize(group);
+  setIsOutOfBoundaryFontSize(group);
+  setBoundaryXMargin(group);
+  setIsOutOfBoundaryXMargin(group);
+
   setYMargin(group);
-  setMaxFontSize(group);
-  setMaxXMargin(group);
+  setTotalLinesCount(group);
 
   setRelativePositions(group);
 
@@ -195,6 +195,9 @@ export function loadSavedState(umlGroup) {
 
   umlGroup.dataset.width = save.width;
   umlGroup.dataset.wrapper_threshold = save.wrapper_threshold;  
+  umlGroup.dataset.font_size = save.font_size;
+  umlGroup.dataset.height = save.height;
+  umlGroup.dataset.x_margin = save.x_margin;
 }
 
 export function saveCurrentState(umlGroup) {
@@ -204,5 +207,8 @@ export function saveCurrentState(umlGroup) {
   umlSavedStates.set(id, {
     width: Number(umlGroup.dataset.width),
     wrapper_threshold: Number(umlGroup.dataset.wrapper_threshold),
+    font_size: Number(umlGroup.dataset.font_size),
+    height: Number(umlGroup.dataset.height),
+    x_margin: Number(umlGroup.dataset.x_margin)
   });
 }

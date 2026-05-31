@@ -5,14 +5,22 @@ import { elements } from "./dom.js";
 import { umlSavedStates, createUmlObject,
    updateRowLines, loadSavedState,
     saveCurrentState } from "./renderer/uml-renderer.js";
-import { setBaselineSkip, setFontSize,
+import { 
    setRelativePositions, setYMargin,
-    setMaxFontSize, setMaxXMargin,
-     setMinHeight, setBoundaryWidth,
+     setBoundaryWidth,
       setMaxTotalLinesCount, setWrapperThreshold,
-       setIsOutOfBoundaryWidth} from "./renderer/setters.js";
+       setIsOutOfBoundaryWidth,
+       setTextFontSize,
+       setIsOutOfBoundaryFontSize,
+       setBoundaryFontSize,
+       setTotalLinesCount,
+       setIsOutOfBoundaryXMargin,
+       setBoundaryXMargin,
+       } from "./renderer/setters.js";
 import { calculateWrapperThreshold, calculateTotalLinesCount,
-   calculateMinLineWidth } from "./renderer/calculators.js";
+   calculateMinLineWidth,
+   calculateNextMaxTotalLinesCount, 
+   } from "./renderer/calculators.js";
 import { clamp, stagePoint, svgYFromBottom, nDigits } from "./utils.js";
 
 let activeDrag = null;
@@ -148,7 +156,7 @@ function setSelectedShape(shape) {
 
 function applySize(shape) {
   const width = clamp(Number(shape.dataset.width), 1, canvasSize.width - Number(shape.dataset.x));
-  const height = clamp(Number(shape.dataset.height), Number(shape.dataset.minHeight), canvasSize.height - Number(shape.dataset.y));
+  const height = clamp(Number(shape.dataset.height), 1, canvasSize.height - Number(shape.dataset.y));
   shape.dataset.width = width;
   shape.dataset.height = height;
 }
@@ -252,17 +260,15 @@ function bindPageEvents() {
   elements.xLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
     
-    const width = Number(selectedShape.dataset.width);
     let nextWidth = Number(elements.xLengthControl.value);
     nextWidth = clamp(nextWidth, 1, canvasSize.width - Number(selectedShape.dataset.x));    
-
+    
     let dir = nextWidth > Number(selectedShape.dataset.width) ? "+" : "-";
     const font_size = Number(selectedShape.dataset.font_size);
     const x_margin = Number(selectedShape.dataset.x_margin);
 
     if (nextWidth < Number(selectedShape.dataset.boundaryWidth) && dir == "-") {      
       const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
-      const baseline_skip = Number(selectedShape.dataset.baseline_skip);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 
       let nextWrapperThreshold = calculateWrapperThreshold(nextWidth, font_size, x_margin);
@@ -272,27 +278,32 @@ function bindPageEvents() {
 
       if (newTotalLinesCount > maxTotalLinesCount) {                        
         loadSavedState(selectedShape);
-        updateRowLines(selectedShape);
       } else {
         selectedShape.dataset.width = nextWidth;
         setWrapperThreshold(selectedShape);
-        updateRowLines(selectedShape);
       }
+      updateRowLines(selectedShape);
     } else {
       selectedShape.dataset.width = nextWidth;
+      setWrapperThreshold(selectedShape);
+
       if (selectedShape.dataset.isOutOfBoundaryWidth === "false") {
-        setWrapperThreshold(selectedShape);
         updateRowLines(selectedShape);
       }
     }
+
+    setTextFontSize(selectedShape);
     setYMargin(selectedShape);
     setRelativePositions(selectedShape);
     
-    setMaxFontSize(selectedShape);
-    setMaxXMargin(selectedShape);
-    setMinHeight(selectedShape);
+    setBoundaryFontSize(selectedShape);
+    setIsOutOfBoundaryFontSize(selectedShape);
+    setBoundaryXMargin(selectedShape);
+    setIsOutOfBoundaryXMargin(selectedShape);
+
     setIsOutOfBoundaryWidth(selectedShape);
 
+    setTotalLinesCount(selectedShape);
     saveCurrentState(selectedShape);    
 
     elements.xLengthControl.value = selectedShape.dataset.width;
@@ -302,14 +313,25 @@ function bindPageEvents() {
   elements.yLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    selectedShape.dataset.height = elements.yLengthControl.value;
-    applySize(selectedShape);
+    let nextHeight = Number(elements.yLengthControl.value);
+    const baseline_skip = Number(selectedShape.dataset.baseline_skip);
+    const y = Number(selectedShape.dataset.y);
+    nextHeight = clamp(nextHeight, 1, canvasSize.height - y); 
+
+    const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(nextHeight, baseline_skip);
+    const currentTotalLinesCount = Number(selectedShape.dataset.totalLinesCount);
+
+    if (currentTotalLinesCount > nextMaxTotalLinesCount) {
+      loadSavedState(selectedShape);
+    } else {
+      selectedShape.dataset.height = nextHeight
+    }
 
     setYMargin(selectedShape);
     setRelativePositions(selectedShape);
-
-    setMaxFontSize(selectedShape);
     setMaxTotalLinesCount(selectedShape);
+
+    saveCurrentState(selectedShape);
 
     elements.yLengthControl.value = selectedShape.dataset.height;
     elements.heightLabel.textContent = `Height: ${nDigits(selectedShape.dataset.height)}`;
@@ -319,21 +341,54 @@ function bindPageEvents() {
   elements.fontSizeControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    const requestedFontSize = Number(elements.fontSizeControl.value);
-    const maxFontSize = Number(selectedShape.dataset.maxFontSize);
+    const nextFontSize = Number(elements.fontSizeControl.value);
+    const nextBaselineSkip = nextFontSize * 1.2;
 
-    const fontSize = Math.min(requestedFontSize, maxFontSize);
+    const width = Number(selectedShape.dataset.width);
+    const x_margin = Number(selectedShape.dataset.x_margin);    
+    const height = Number(selectedShape.dataset.height);
 
-    setFontSize(selectedShape, fontSize);
-    setBaselineSkip(selectedShape);
+    if (nextFontSize > Number(selectedShape.dataset.boundaryFontSize)) {
+      const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(height, nextBaselineSkip);
+      const rows = selectedShape.querySelectorAll(":scope > g > g");
+
+      let nextWrapperThreshold = calculateWrapperThreshold(width, nextFontSize, x_margin);
+      nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
+      let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);      
+
+      if (newTotalLinesCount > nextMaxTotalLinesCount) {                        
+        loadSavedState(selectedShape);
+      } else {
+        selectedShape.dataset.font_size = nextFontSize;
+        setWrapperThreshold(selectedShape);
+      }
+      updateRowLines(selectedShape);
+    } else {
+      selectedShape.dataset.font_size = nextFontSize;
+      setWrapperThreshold(selectedShape);
+
+      if (selectedShape.dataset.isOutOfBoundaryFontSize === "true") {        
+        updateRowLines(selectedShape);
+      }
+    }
+
+    selectedShape.dataset.baseline_skip = Number(selectedShape.dataset.font_size) * 1.2;
+    setTextFontSize(selectedShape);
     setYMargin(selectedShape);
     setRelativePositions(selectedShape);
 
-    setMaxXMargin(selectedShape);
-    setMinHeight(selectedShape);
     setBoundaryWidth(selectedShape);
+    setIsOutOfBoundaryWidth(selectedShape);
+    setBoundaryXMargin(selectedShape);
+    setIsOutOfBoundaryXMargin(selectedShape);
 
-    elements.fontSizeControl.value = fontSize;
+    setIsOutOfBoundaryFontSize(selectedShape);
+    
+    setMaxTotalLinesCount(selectedShape);
+    setTotalLinesCount(selectedShape);
+    saveCurrentState(selectedShape);    
+
+    elements.fontSizeControl.value = selectedShape.dataset.font_size;
     elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.font_size)}`;
 
   });
@@ -341,19 +396,50 @@ function bindPageEvents() {
   elements.xMarginControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    const requestedXMargin = Number(elements.xMarginControl.value);
-    const maxXMargin = Number(selectedShape.dataset.maxXMargin);
+    const nextXMargin = Number(elements.xMarginControl.value);
+    const font_size = Number(selectedShape.dataset.font_size);
+    const width = Number(selectedShape.dataset.width);
 
-    const xMargin = Math.min(requestedXMargin, maxXMargin);
-    selectedShape.dataset.x_margin = xMargin;
+    if (nextXMargin > Number(selectedShape.dataset.boundaryXMargin)) {      
+      const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
+      const rows = selectedShape.querySelectorAll(":scope > g > g");
 
+      let nextWrapperThreshold = calculateWrapperThreshold(width, font_size, nextXMargin);
+      nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
+      
+      let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);
+
+      if (newTotalLinesCount > maxTotalLinesCount) {                        
+        loadSavedState(selectedShape);
+      } else {
+        selectedShape.dataset.x_margin = nextXMargin;
+        setWrapperThreshold(selectedShape);
+      }
+      updateRowLines(selectedShape);
+    } else {
+      selectedShape.dataset.x_margin = nextXMargin;
+      setWrapperThreshold(selectedShape);
+
+      if (selectedShape.dataset.isOutOfBoundaryXMargin === "true") {
+        updateRowLines(selectedShape);
+      }
+    }
+
+    setTextFontSize(selectedShape);
+    setYMargin(selectedShape);
     setRelativePositions(selectedShape);
 
-    setMaxFontSize(selectedShape);
     setBoundaryWidth(selectedShape);
-    setWrapperThreshold(selectedShape);
+    setIsOutOfBoundaryWidth(selectedShape);
+    setBoundaryFontSize(selectedShape);
+    setIsOutOfBoundaryFontSize(selectedShape);
 
-    elements.xMarginControl.value = xMargin;
+    setIsOutOfBoundaryXMargin(selectedShape);
+
+    setTotalLinesCount(selectedShape);
+    saveCurrentState(selectedShape); 
+
+    elements.xMarginControl.value = selectedShape.dataset.x_margin;
     elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.x_margin)}`;
 
   });

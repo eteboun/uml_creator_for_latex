@@ -46,3 +46,7 @@ export function calculateWrapperThreshold(width, font_size, x_margin) {
   return Math.floor((width - x_margin * 2) /
            (font_size * factor));
 }
+
+export function calculateNextMaxTotalLinesCount(height, baseline_skip) {
+    return height / baseline_skip;
+}
