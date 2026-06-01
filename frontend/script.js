@@ -98,7 +98,7 @@ function updateObjectList() {
     item.type = "button";
     item.className = "object-list-item";
     item.classList.toggle("selected", shape === selectedShape);
-    item.textContent = `${index + 1}. ${shape.dataset.label}`;
+    item.textContent = `${index + 1}. ${shape.dataset.name}`;
     item.addEventListener("click", () => setSelectedShape(shape));
     elements.umlObjects.appendChild(item);
   });
@@ -124,14 +124,14 @@ function updateSelectionControls() {
     elements.fontSizeControl.value = selectedShape.dataset.font_size;
     elements.xMarginControl.value = selectedShape.dataset.x_margin;
 
-    elements.cornerReadout.textContent = `Left bottom: ${nDigits(selectedShape.dataset.leftBottomX)}, ${nDigits(selectedShape.dataset.leftBottomY)}`;
+    elements.cornerReadout.textContent = `Left top: ${nDigits(selectedShape.dataset.x)}, ${nDigits(selectedShape.dataset.y)}`;
     elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
     elements.heightLabel.textContent = `Height: ${nDigits(selectedShape.dataset.height)}`;
     elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.font_size)}`;
     elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.x_margin)}`;
 
   } else {
-    elements.cornerReadout.textContent = "Left bottom: -";
+    elements.cornerReadout.textContent = "Left top: -";
     elements.widthLabel.textContent = `Width: -`;
     elements.heightLabel.textContent = `Height: -`;
     elements.fontSizeLabel.textContent = `Font Size: -`;
@@ -161,11 +161,6 @@ function applySize(shape) {
   shape.dataset.height = height;
 }
 
-function updateLeftBottom(shape) {
-  shape.dataset.leftBottomX = Number(shape.dataset.x).toFixed(2);
-  shape.dataset.leftBottomY = (canvasSize.height - (Number(shape.dataset.y) + Number(shape.dataset.height))).toFixed(2);
-}
-
 function moveShape(shape, x, y) {
   applySize(shape);
   const size = shapeSizeInCanvasUnits(shape);
@@ -175,7 +170,6 @@ function moveShape(shape, x, y) {
   shape.dataset.y = clamp(y, 0, maxY);
 
   applyShapeTransform(shape);
-  updateLeftBottom(shape);
 
   if (shape === selectedShape) {
     updateSelectionControls();
@@ -184,7 +178,6 @@ function moveShape(shape, x, y) {
 
 function bindShape(shape) {
   applySize(shape);
-  updateLeftBottom(shape);
 
   shape.addEventListener("pointerdown", (event) => {
     event.preventDefault();

@@ -1,7 +1,5 @@
-package uml_parser;
+package code_parser;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -10,16 +8,16 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
-import uml_parser.modules.*;
-import uml_parser.models.*;
+import code_parser.modules.*;
+import code_parser.models.*;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Main {
-     static void main() throws JsonProcessingException {
+public class CodeParser {
+     static List<DefaultBase> run() {
 
         Locale.setDefault(Locale.ROOT);
 
@@ -54,10 +52,7 @@ public class Main {
         for (RecordDeclaration cls : records) createdClasses.add(createClass(cls));
         for (EnumDeclaration cls : enums) createdClasses.add(createClass(cls));
 
-        // JSON output
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(createdClasses);
-        System.out.println(json);
+        return createdClasses;
     }
 
     private static List<FieldInfo> parseFields(List<FieldDeclaration> fields) {
@@ -131,7 +126,6 @@ public class Main {
     private static DefaultBase createClass(TypeDeclaration<?> cls) {
         String name = cls.getNameAsString();
         String accessSpecifier =  cls.getAccessSpecifier().asString();
-        ClassTypes type_;
         boolean isStatic = cls.isStatic();
 
         List<FieldInfo> fields = parseFields(cls.getFields());
@@ -161,11 +155,9 @@ public class Main {
                         .map(NodeWithSimpleName::getNameAsString)
                         .toList();
                 if (c.isInterface()) {
-                    type_ = ClassTypes.INTERFACE;
                     return new DefaultInterface(
                             name,
                             accessSpecifier,
-                            type_,
                             isFinal,
                             isAbstract,
                             isStatic,
@@ -175,7 +167,6 @@ public class Main {
                             permits_
                     );
                 } else {
-                    type_ = ClassTypes.CLASS;
                     List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
                     List<String> implements_ = c.getImplementedTypes()
                             .stream()
@@ -185,7 +176,6 @@ public class Main {
                     return new DefaultClass(
                             name,
                             accessSpecifier,
-                            type_,
                             isFinal,
                             isAbstract,
                             isStatic,
@@ -200,7 +190,6 @@ public class Main {
             }
             case RecordDeclaration c -> {
 
-                type_ = ClassTypes.RECORD;
                 boolean isFinal = c.isFinal();
 
                 List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
@@ -214,7 +203,6 @@ public class Main {
                 return new DefaultRecord(
                         name,
                         accessSpecifier,
-                        type_,
                         isFinal,
                         isStatic,
                         parameters,
@@ -225,7 +213,6 @@ public class Main {
                 );
             }
             case EnumDeclaration c -> {
-                type_ = ClassTypes.ENUM;
 
                 List<ConstructorInfo> constructors = parseConstructors(c.getConstructors());
                 List<ConstantInfo> constants = parseConstants(c.getEntries());
@@ -238,7 +225,6 @@ public class Main {
                 return new DefaultEnum(
                         name,
                         accessSpecifier,
-                        type_,
                         isStatic,
                         fields,
                         constructors,
