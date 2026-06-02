@@ -6,7 +6,7 @@ export const canvasSize = {
 export const svgNS = "http://www.w3.org/2000/svg";
 
 export const apiUrls = {
-  createUml: "http://localhost:8000/uml/create",
-  updateUml: "http://localhost:8000/uml/update",
-  deleteUml: "http://localhost:8000/uml/delete"
+  createUml: "http://localhost:8080/uml/create",
+  updateUml: "http://localhost:8080/uml/update",
+  deleteUml: "http://localhost:8080/uml/delete"
 };

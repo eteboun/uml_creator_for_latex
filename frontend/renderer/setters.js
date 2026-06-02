@@ -14,7 +14,7 @@ export function setRelativePositions(umlGroup) {
     let starting_y = sec_y;
     section.setAttribute("transform", `translate(${0}, ${sec_y})`);
     
-    let row_x = section.dataset.name === "title" ? Number(umlGroup.dataset.width) / 2 : Number(umlGroup.dataset.x_margin); 
+    let row_x = section.dataset.name === "title" ? Number(umlGroup.dataset.width) / 2 : Number(umlGroup.dataset.xMargin); 
     let row_y = Number(umlGroup.dataset.y_margin);
     const rows = section.querySelectorAll(":scope > g");
 
@@ -23,9 +23,9 @@ export function setRelativePositions(umlGroup) {
       const lines = row.querySelectorAll(":scope > text > tspan");
       const row_height = getRowHeight(umlGroup, lines);
 
-      const firstDy = -((lines.length - 1) * Number(umlGroup.dataset.baseline_skip)) / 2;
+      const firstDy = -((lines.length - 1) * Number(umlGroup.dataset.baselineSkip)) / 2;
       lines.forEach((line, index) => {
-        let dy = index === 0 ? firstDy : Number(umlGroup.dataset.baseline_skip);
+        let dy = index === 0 ? firstDy : Number(umlGroup.dataset.baselineSkip);
         line.setAttribute("dy", dy);
         line.setAttribute("x", 0);
       });
@@ -56,12 +56,12 @@ export function setYMargin(umlGroup) {
 export function setTextFontSize(umlGroup) {
   const texts = umlGroup.querySelectorAll(":scope > g > g > text");
   texts.forEach((text) => {
-    text.setAttribute("font-size", umlGroup.dataset.font_size);
+    text.setAttribute("font-size", umlGroup.dataset.fontSize);
   })
 }
 
 export function setBoundaryWidth(umlGroup) {
-  const x_margin = Number(umlGroup.dataset.x_margin);
+  const xMargin = Number(umlGroup.dataset.xMargin);
   const rows = umlGroup.querySelectorAll(":scope > g > g");
   let longestSeqLen = 0;
   rows.forEach((row) => {
@@ -75,14 +75,14 @@ export function setBoundaryWidth(umlGroup) {
     })
   })
 
-  const font_size = Number(umlGroup.dataset.font_size);
-  const textWidth = longestSeqLen * font_size * factor;
-  const boundaryWidth = textWidth + x_margin * 2;
+  const fontSize = Number(umlGroup.dataset.fontSize);
+  const textWidth = longestSeqLen * fontSize * factor;
+  const boundaryWidth = textWidth + xMargin * 2;
   umlGroup.dataset.boundaryWidth = boundaryWidth;
 }
 
 export function setBoundaryFontSize(umlGroup) {
-  const x_margin = Number(umlGroup.dataset.x_margin);
+  const xMargin = Number(umlGroup.dataset.xMargin);
   const rows = umlGroup.querySelectorAll(":scope > g > g");
   let longestSeqLen = 0;
   rows.forEach((row) => {
@@ -97,20 +97,20 @@ export function setBoundaryFontSize(umlGroup) {
   })
 
   const width = Number(umlGroup.dataset.width);
-  const boundaryFontSize = (width - x_margin * 2) / (longestSeqLen * factor);
+  const boundaryFontSize = (width - xMargin * 2) / (longestSeqLen * factor);
   umlGroup.dataset.boundaryFontSize = boundaryFontSize;
 }
 
 export function setIsOutOfBoundaryFontSize(umlGroup) {
-  umlGroup.dataset.isOutOfBoundaryFontSize = Number(umlGroup.dataset.font_size) > Number(umlGroup.dataset.boundaryFontSize);
+  umlGroup.dataset.isOutOfBoundaryFontSize = Number(umlGroup.dataset.fontSize) > Number(umlGroup.dataset.boundaryFontSize);
 }
 
 export function setWrapperThreshold(umlGroup) {
-  umlGroup.dataset.wrapper_threshold = calculateWrapperThreshold(Number(umlGroup.dataset.width), Number(umlGroup.dataset.font_size), Number(umlGroup.dataset.x_margin));
+  umlGroup.dataset.wrapper_threshold = calculateWrapperThreshold(Number(umlGroup.dataset.width), Number(umlGroup.dataset.fontSize), Number(umlGroup.dataset.xMargin));
 }
 
 export function setMaxTotalLinesCount(umlGroup) {
-  umlGroup.dataset.maxTotalLinesCount = Number(umlGroup.dataset.height) / Number(umlGroup.dataset.baseline_skip);
+  umlGroup.dataset.maxTotalLinesCount = Number(umlGroup.dataset.height) / Number(umlGroup.dataset.baselineSkip);
 }
 
 export function setIsOutOfBoundaryWidth(umlGroup) {
@@ -123,7 +123,7 @@ export function setTotalLinesCount(umlGroup) {
 }
 
 export function setIsOutOfBoundaryXMargin(umlGroup) {
-  umlGroup.dataset.isOutOfBoundaryXMargin = Number(umlGroup.dataset.x_margin) > Number(umlGroup.dataset.boundaryXMargin);
+  umlGroup.dataset.isOutOfBoundaryXMargin = Number(umlGroup.dataset.xMargin) > Number(umlGroup.dataset.boundaryXMargin);
 }
 
 export function setBoundaryXMargin(umlGroup) {
@@ -142,7 +142,7 @@ export function setBoundaryXMargin(umlGroup) {
   })
 
   const width = Number(umlGroup.dataset.width);
-  const font_size = Number(umlGroup.dataset.font_size);
-  const xMargin = (width - longestSeqLen * font_size * factor) / 2;
+  const fontSize = Number(umlGroup.dataset.fontSize);
+  const xMargin = (width - longestSeqLen * fontSize * factor) / 2;
   umlGroup.dataset.boundaryXMargin = xMargin;
 }

@@ -18,35 +18,35 @@ export function calculateMinLineWidth(umlGroup) {
   const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
   lines.forEach((line) => {
     let lineWidth = line.getComputedTextLength() +
-            Number(umlGroup.dataset.x_margin) * 2;
+            Number(umlGroup.dataset.xMargin) * 2;
     
     if (lineWidth > minWidth) minWidth = lineWidth;
   })
   return minWidth;
 }
 
-export function calculateCharWidthFactor(font_size) {
+export function calculateCharWidthFactor(fontSize) {
   const sample = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
   const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  text.setAttribute("font-size", font_size);
+  text.setAttribute("font-size", fontSize);
   text.setAttribute("font-family", "monospace");
   text.setAttribute("visibility", "hidden");
   text.textContent = sample;
 
   elements.canvasSvg.appendChild(text);
   const width = text.getComputedTextLength();
-  const factor = width / (font_size * sample.length);
+  const factor = width / (fontSize * sample.length);
   text.remove();
 
   return factor;
 }
 
-export function calculateWrapperThreshold(width, font_size, x_margin) {
-  return Math.floor((width - x_margin * 2) /
-           (font_size * factor));
+export function calculateWrapperThreshold(width, fontSize, xMargin) {
+  return Math.floor((width - xMargin * 2) /
+           (fontSize * factor));
 }
 
-export function calculateNextMaxTotalLinesCount(height, baseline_skip) {
-    return height / baseline_skip;
+export function calculateNextMaxTotalLinesCount(height, baselineSkip) {
+    return height / baselineSkip;
 }

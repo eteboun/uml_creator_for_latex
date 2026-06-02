@@ -53,7 +53,8 @@ public class Builder {
     public static List<RenderReadyUML> createRenderReadyUMLs(List<DefaultBase> createdClasses, FullConfig config) {
         List<RenderReadyUML> createdUMLs = new ArrayList<>();
         for (DefaultBase createdClass : createdClasses) {
-            createdUMLs.add(new RenderReadyUML(createSections(createdClass,
+            createdUMLs.add(new RenderReadyUML(createdClass.name(),
+                    createSections(createdClass,
                     config.getSectionConfigs())
                     , config.getRenderConfig()));
         }

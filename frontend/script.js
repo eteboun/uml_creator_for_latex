@@ -121,14 +121,14 @@ function updateSelectionControls() {
 
     elements.xLengthControl.value = width;
     elements.yLengthControl.value = height;
-    elements.fontSizeControl.value = selectedShape.dataset.font_size;
-    elements.xMarginControl.value = selectedShape.dataset.x_margin;
+    elements.fontSizeControl.value = selectedShape.dataset.fontSize;
+    elements.xMarginControl.value = selectedShape.dataset.xMargin;
 
     elements.cornerReadout.textContent = `Left top: ${nDigits(selectedShape.dataset.x)}, ${nDigits(selectedShape.dataset.y)}`;
     elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
     elements.heightLabel.textContent = `Height: ${nDigits(selectedShape.dataset.height)}`;
-    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.font_size)}`;
-    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.x_margin)}`;
+    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.fontSize)}`;
+    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.xMargin)}`;
 
   } else {
     elements.cornerReadout.textContent = "Left top: -";
@@ -257,14 +257,14 @@ function bindPageEvents() {
     nextWidth = clamp(nextWidth, 1, canvasSize.width - Number(selectedShape.dataset.x));    
     
     let dir = nextWidth > Number(selectedShape.dataset.width) ? "+" : "-";
-    const font_size = Number(selectedShape.dataset.font_size);
-    const x_margin = Number(selectedShape.dataset.x_margin);
+    const fontSize = Number(selectedShape.dataset.fontSize);
+    const xMargin = Number(selectedShape.dataset.xMargin);
 
     if (nextWidth < Number(selectedShape.dataset.boundaryWidth) && dir == "-") {      
       const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 
-      let nextWrapperThreshold = calculateWrapperThreshold(nextWidth, font_size, x_margin);
+      let nextWrapperThreshold = calculateWrapperThreshold(nextWidth, fontSize, xMargin);
       nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
       
       let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);
@@ -307,11 +307,11 @@ function bindPageEvents() {
     if (!selectedShape) return;
 
     let nextHeight = Number(elements.yLengthControl.value);
-    const baseline_skip = Number(selectedShape.dataset.baseline_skip);
+    const baselineSkip = Number(selectedShape.dataset.baselineSkip);
     const y = Number(selectedShape.dataset.y);
     nextHeight = clamp(nextHeight, 1, canvasSize.height - y); 
 
-    const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(nextHeight, baseline_skip);
+    const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(nextHeight, baselineSkip);
     const currentTotalLinesCount = Number(selectedShape.dataset.totalLinesCount);
 
     if (currentTotalLinesCount > nextMaxTotalLinesCount) {
@@ -338,26 +338,26 @@ function bindPageEvents() {
     const nextBaselineSkip = nextFontSize * 1.2;
 
     const width = Number(selectedShape.dataset.width);
-    const x_margin = Number(selectedShape.dataset.x_margin);    
+    const xMargin = Number(selectedShape.dataset.xMargin);    
     const height = Number(selectedShape.dataset.height);
 
     if (nextFontSize > Number(selectedShape.dataset.boundaryFontSize)) {
       const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(height, nextBaselineSkip);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 
-      let nextWrapperThreshold = calculateWrapperThreshold(width, nextFontSize, x_margin);
+      let nextWrapperThreshold = calculateWrapperThreshold(width, nextFontSize, xMargin);
       nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
       let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);      
 
       if (newTotalLinesCount > nextMaxTotalLinesCount) {                        
         loadSavedState(selectedShape);
       } else {
-        selectedShape.dataset.font_size = nextFontSize;
+        selectedShape.dataset.fontSize = nextFontSize;
         setWrapperThreshold(selectedShape);
       }
       updateRowLines(selectedShape);
     } else {
-      selectedShape.dataset.font_size = nextFontSize;
+      selectedShape.dataset.fontSize = nextFontSize;
       setWrapperThreshold(selectedShape);
 
       if (selectedShape.dataset.isOutOfBoundaryFontSize === "true") {        
@@ -365,7 +365,7 @@ function bindPageEvents() {
       }
     }
 
-    selectedShape.dataset.baseline_skip = Number(selectedShape.dataset.font_size) * 1.2;
+    selectedShape.dataset.baselineSkip = Number(selectedShape.dataset.fontSize) * 1.2;
     setTextFontSize(selectedShape);
     setYMargin(selectedShape);
     setRelativePositions(selectedShape);
@@ -381,8 +381,8 @@ function bindPageEvents() {
     setTotalLinesCount(selectedShape);
     saveCurrentState(selectedShape);    
 
-    elements.fontSizeControl.value = selectedShape.dataset.font_size;
-    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.font_size)}`;
+    elements.fontSizeControl.value = selectedShape.dataset.fontSize;
+    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.fontSize)}`;
 
   });
 
@@ -390,14 +390,14 @@ function bindPageEvents() {
     if (!selectedShape) return;
 
     const nextXMargin = Number(elements.xMarginControl.value);
-    const font_size = Number(selectedShape.dataset.font_size);
+    const fontSize = Number(selectedShape.dataset.fontSize);
     const width = Number(selectedShape.dataset.width);
 
     if (nextXMargin > Number(selectedShape.dataset.boundaryXMargin)) {      
       const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 
-      let nextWrapperThreshold = calculateWrapperThreshold(width, font_size, nextXMargin);
+      let nextWrapperThreshold = calculateWrapperThreshold(width, fontSize, nextXMargin);
       nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
       
       let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);
@@ -405,12 +405,12 @@ function bindPageEvents() {
       if (newTotalLinesCount > maxTotalLinesCount) {                        
         loadSavedState(selectedShape);
       } else {
-        selectedShape.dataset.x_margin = nextXMargin;
+        selectedShape.dataset.xMargin = nextXMargin;
         setWrapperThreshold(selectedShape);
       }
       updateRowLines(selectedShape);
     } else {
-      selectedShape.dataset.x_margin = nextXMargin;
+      selectedShape.dataset.xMargin = nextXMargin;
       setWrapperThreshold(selectedShape);
 
       if (selectedShape.dataset.isOutOfBoundaryXMargin === "true") {
@@ -432,8 +432,8 @@ function bindPageEvents() {
     setTotalLinesCount(selectedShape);
     saveCurrentState(selectedShape); 
 
-    elements.xMarginControl.value = selectedShape.dataset.x_margin;
-    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.x_margin)}`;
+    elements.xMarginControl.value = selectedShape.dataset.xMargin;
+    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.xMargin)}`;
 
   });
   elements.sendCode.addEventListener("click", async () => {
