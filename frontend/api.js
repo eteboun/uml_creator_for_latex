@@ -23,17 +23,3 @@ export async function updateUml(configs) {
 
   return response.json();
 }
-
-export async function deleteUml(id) {
-  const response = await fetch(apiUrls.deleteUml, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ id })
-  });
-
-  if (!response.ok) {
-    throw new Error(`Delete failed with status ${response.status}`);
-  }
-}

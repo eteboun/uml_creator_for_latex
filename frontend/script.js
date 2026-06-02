@@ -1,4 +1,4 @@
-import { createUml, deleteUml,
+import { createUml,
    updateUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
@@ -225,22 +225,16 @@ function bindPageEvents() {
     });
   });
 
-  elements.deleteObject.addEventListener("click", async () => {
+  elements.deleteObject.addEventListener("click", () => {
     if (!selectedShape) return;
 
     const shapeToDelete = selectedShape;
     elements.deleteObject.disabled = true;
 
-    try {
-      await deleteUml(getShapeId(shapeToDelete));
-      shapeToDelete.remove();
-      selectedShape = null;
-      updateSelectionControls();
-      updateObjectList();
-    } catch (error) {
-      console.error(error);
-      updateSelectionControls();
-    }
+    shapeToDelete.remove();
+    selectedShape = null;
+    updateSelectionControls();
+    updateObjectList();    
   });
 
   elements.saveConfig.addEventListener("click", async () => {
