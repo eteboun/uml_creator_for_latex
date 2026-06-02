@@ -1,4 +1,6 @@
-package config;
+package builder.config;
+
+import builder.ContentTextable;
 
 public record RenderConfig(float x,
                            float y,
@@ -6,4 +8,5 @@ public record RenderConfig(float x,
                            float height,
                            float xMargin,
                            float fontSize,
-                           float baselineSkip) {}
+                           float baselineSkip)  {
+}

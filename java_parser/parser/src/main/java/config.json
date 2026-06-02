@@ -10,8 +10,7 @@
     "y": 3
   },
 
-"sections": {
-
+"section_configs": {
     "title_section_config": {
       "background_color": [77, 77, 255],
       "text_color": [255, 255, 0]

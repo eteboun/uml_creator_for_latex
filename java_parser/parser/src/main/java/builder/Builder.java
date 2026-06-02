@@ -7,9 +7,8 @@ import builder.components.Section;
 
 import code_parser.models.*;
 import code_parser.modules.*;
-import config.FullConfig;
-import config.RenderConfig;
-import config.SectionConfig;
+import builder.config.FullConfig;
+import builder.config.SectionConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,13 +54,3 @@ public class Builder {
         return new RenderReadyUML(createSections(base, config.getSectionConfigs()), config.getRenderConfig());
     }
 }
-
-
-
-
-
-
-
-
-
-

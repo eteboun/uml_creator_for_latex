@@ -1,4 +1,5 @@
 package code_parser.models;
+import code_parser.NotationTextable;
 import code_parser.Textual;
 import code_parser.modules.AllowedModules;
 import code_parser.modules.DefaultModule;
@@ -17,7 +18,7 @@ public record DefaultInterface(String name,
                            List<MethodInfo> methods,
                            List<String> extends_,
                            List<String> permits_
-) implements  DefaultBase{
+) implements  DefaultBase {
     @Override
     public String stereotype() {
         return "<< Interface >>";

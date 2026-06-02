@@ -1,5 +1,6 @@
 package code_parser.modules;
 
+import code_parser.NotationTextable;
 import java.util.List;
 
 public record ConstantInfo(String name, List<String> args) implements DefaultModule {

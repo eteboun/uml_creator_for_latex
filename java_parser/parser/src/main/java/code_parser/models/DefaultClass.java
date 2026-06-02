@@ -1,5 +1,6 @@
 package code_parser.models;
 
+import code_parser.NotationTextable;
 import code_parser.modules.*;
 import code_parser.Textual;
 
@@ -16,7 +17,7 @@ public record DefaultClass(String name,
                            List<String> extends_,
                            List<String> implements_,
                            List<String> permits_
-) implements DefaultBase{
+) implements DefaultBase {
     @Override
     public String stereotype() {
         return "";

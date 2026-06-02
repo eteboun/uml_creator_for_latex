@@ -1,4 +1,4 @@
-package config;
+package builder.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +27,7 @@ public class FullConfig {
         JsonNode root = mapper.readTree(Path.of(address).toFile());
         this.renderConfig = mapper.treeToValue(root.get("renderer"), RenderConfig.class);
 
-        root = root.get("sections");
+        root = root.get("section_configs");
         for (var entry : sectionConfigNamesMapping.entrySet()) {
             JsonNode sectionNode = root.get(entry.getValue());
 

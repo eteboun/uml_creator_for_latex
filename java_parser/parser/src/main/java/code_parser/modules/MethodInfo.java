@@ -1,5 +1,6 @@
 package code_parser.modules;
 
+import code_parser.NotationTextable;
 import code_parser.Textual;
 
 import java.util.List;

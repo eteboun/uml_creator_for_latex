@@ -1,4 +1,5 @@
 package code_parser.models;
+import code_parser.NotationTextable;
 import code_parser.Textual;
 import code_parser.modules.*;
 
@@ -11,7 +12,7 @@ public record DefaultEnum(String name,
                            List<MethodInfo> methods,
                            List<ConstantInfo> constants,
                            List<String> implements_
-) implements DefaultBase{
+) implements DefaultBase {
     @Override
     public String stereotype() {
         return "<< Enum >>";

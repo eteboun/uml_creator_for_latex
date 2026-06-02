@@ -4,4 +4,5 @@ import java.util.List;
 
 public record Row(String anchor,
                   String align,
-                  List<String> content) {}
+                  List<String> content) {
+}

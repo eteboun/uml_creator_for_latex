@@ -12,16 +12,15 @@ import code_parser.modules.*;
 import code_parser.models.*;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Scanner;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class CodeParser {
-     static List<DefaultBase> run() {
+     public static List<DefaultBase> run(String javaCode) {
 
         Locale.setDefault(Locale.ROOT);
 
-        // Setting config
+        // Setting builder.config
         ParserConfiguration config = new ParserConfiguration();
         config.setLanguageLevel(
                 ParserConfiguration.LanguageLevel.JAVA_21
@@ -29,8 +28,7 @@ public class CodeParser {
         StaticJavaParser.setConfiguration(config);
 
         // Compilation unit
-        String code = getCode();
-        CompilationUnit cu = StaticJavaParser.parse(code);
+        CompilationUnit cu = StaticJavaParser.parse(javaCode);
 
         // Parse class types
         List<ClassOrInterfaceDeclaration> classes = cu.findAll(ClassOrInterfaceDeclaration.class)
@@ -238,16 +236,5 @@ public class CodeParser {
         }
 
         return null;
-    }
-    private static String getCode() {
-        Scanner sc = new Scanner(System.in);
-        StringBuilder sb = new StringBuilder();
-
-        while (sc.hasNextLine()) {
-            sb.append(sc.nextLine());
-            sb.append("\n");
-        }
-
-        return sb.toString();
     }
 }

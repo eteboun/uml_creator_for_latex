@@ -1,6 +1,7 @@
 package code_parser.modules;
 
-public interface DefaultModule {
+import code_parser.NotationTextable;
+
+public interface DefaultModule extends NotationTextable {
     String name();
-    String toText();
 }
