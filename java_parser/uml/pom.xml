@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>uml_parser</groupId>
-    <artifactId>parser</artifactId>
+    <artifactId>uml</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
