@@ -1,5 +1,4 @@
-import { createUml,
-   updateUml } from "./api.js";
+import { createUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
 import { umlSavedStates, createUmlObject,
@@ -237,24 +236,17 @@ function bindPageEvents() {
     updateObjectList();    
   });
 
-  elements.saveConfig.addEventListener("click", async () => {
-    const configs = getChangedConfigsPayload();
-    if (configs.length === 0) return;
-
-    const result = await updateUml(configs);
-  });
-
   elements.xLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
     
     let nextWidth = Number(elements.xLengthControl.value);
     nextWidth = clamp(nextWidth, 1, canvasSize.width - Number(selectedShape.dataset.x));    
     
-    let dir = nextWidth > Number(selectedShape.dataset.width) ? "+" : "-";
+    let dir = nextWidth > Number(selectedShape.dataset.width);
     const fontSize = Number(selectedShape.dataset.fontSize);
     const xMargin = Number(selectedShape.dataset.xMargin);
 
-    if (nextWidth < Number(selectedShape.dataset.boundaryWidth) && dir == "-") {      
+    if (nextWidth < Number(selectedShape.dataset.boundaryWidth) && !dir) {      
       const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 
@@ -330,12 +322,13 @@ function bindPageEvents() {
 
     const nextFontSize = Number(elements.fontSizeControl.value);
     const nextBaselineSkip = nextFontSize * 1.2;
+    let dir = nextFontSize > Number(selectedShape.dataset.fontSize);
 
     const width = Number(selectedShape.dataset.width);
     const xMargin = Number(selectedShape.dataset.xMargin);    
     const height = Number(selectedShape.dataset.height);
 
-    if (nextFontSize > Number(selectedShape.dataset.boundaryFontSize)) {
+    if (nextFontSize > Number(selectedShape.dataset.boundaryFontSize) && dir) {
       const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(height, nextBaselineSkip);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 
@@ -384,10 +377,12 @@ function bindPageEvents() {
     if (!selectedShape) return;
 
     const nextXMargin = Number(elements.xMarginControl.value);
+    let dir = nextXMargin > Number(selectedShape.dataset.xMargin);
+
     const fontSize = Number(selectedShape.dataset.fontSize);
     const width = Number(selectedShape.dataset.width);
 
-    if (nextXMargin > Number(selectedShape.dataset.boundaryXMargin)) {      
+    if (nextXMargin > Number(selectedShape.dataset.boundaryXMargin) && dir) {      
       const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
       const rows = selectedShape.querySelectorAll(":scope > g > g");
 

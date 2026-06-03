@@ -79,6 +79,7 @@ export function createSection(umlGroup, section) {
 }
 
 export function createUmlObject(objectConfig) {
+  const name = objectConfig.name;
   const renderer = objectConfig.renderer;
   const sections = objectConfig.sections;
 
@@ -91,7 +92,7 @@ export function createUmlObject(objectConfig) {
 
   const id = crypto.randomUUID();
   group.dataset.id = id;
-  group.dataset.name = renderer.name;
+  group.dataset.name = name;
   group.dataset.x = renderer.x;
   group.dataset.y = y;
   group.dataset.xMargin = renderer.xMargin;

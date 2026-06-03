@@ -11,15 +11,3 @@ export async function createUml(code) {
   
   return response.json();
 }
-
-export async function updateUml(configs) {
-  const response = await fetch(apiUrls.updateUml, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(configs)
-  });
-
-  return response.json();
-}

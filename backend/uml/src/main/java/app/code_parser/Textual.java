@@ -41,8 +41,8 @@ public class Textual {
             }
         }
 
-        return mods.isEmpty() ? "" : "{" +
-                String.format(" %s", String.join(", ", mods)) + "}";
+        return mods.isEmpty() ? "" : " {" +
+                String.format("%s", String.join(", ", mods)) + "}";
     }
 
     public static String modsEnd(DefaultModule module) {
@@ -61,7 +61,7 @@ public class Textual {
             }
         }
 
-        return mods.isEmpty() ? "" : "{" +
-                String.format(" %s", String.join(", ", mods)) + "}";
+        return mods.isEmpty() ? "" : " {" +
+                String.format("%s", String.join(", ", mods)) + "}";
     }
 }
