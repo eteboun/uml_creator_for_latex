@@ -13,18 +13,6 @@ export function calculateTotalLinesCount(rows, wrapper_threshold) {
   return totalLinesCount;
 }
 
-export function calculateMinLineWidth(umlGroup) {
-  let minWidth = 0;
-  const lines = umlGroup.querySelectorAll(":scope > g > g > text > tspan");
-  lines.forEach((line) => {
-    let lineWidth = line.getComputedTextLength() +
-            Number(umlGroup.dataset.xMargin) * 2;
-    
-    if (lineWidth > minWidth) minWidth = lineWidth;
-  })
-  return minWidth;
-}
-
 export function calculateCharWidthFactor(fontSize) {
   const sample = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 

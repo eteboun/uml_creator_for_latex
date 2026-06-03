@@ -1,13 +1,19 @@
-import { createSvgElement, parseColor,
-   svgYFromBottom, textWrapper } from "../utils.js";
-import { elements } from "../dom.js";
-import { calculateCharWidthFactor } from "./calculators.js";
-import { setBoundaryFontSize, setBoundaryWidth, setBoundaryXMargin, setIsOutOfBoundaryFontSize, setIsOutOfBoundaryWidth,
+import {createSvgElement, parseColor, svgYFromBottom, textWrapper} from "../utils.js";
+import {calculateCharWidthFactor} from "./calculators.js";
+import {
+  setBoundaryFontSize,
+  setBoundaryWidth,
+  setBoundaryXMargin,
+  setIsOutOfBoundaryFontSize,
+  setIsOutOfBoundaryWidth,
   setIsOutOfBoundaryXMargin,
   setMaxTotalLinesCount,
-  setRelativePositions, setTextFontSize, setTotalLinesCount, setWrapperThreshold,
+  setRelativePositions,
+  setTextFontSize,
+  setTotalLinesCount,
+  setWrapperThreshold,
   setYMargin,
- } from "./setters.js";
+} from "./setters.js";
 
 const umlRows = new Map();
 const umlSections = new Map();
@@ -43,7 +49,7 @@ export function createText(umlGroup, sectionGroup, rowGroup) {
 
   const lines = createLines(rowObj.content, Number(umlGroup.dataset.wrapper_threshold));
 
-  lines.forEach((line, index) => {
+  lines.forEach((line) => {
     const tspan = createSvgElement("tspan", {});
     tspan.textContent = line;
     text.appendChild(tspan);
@@ -90,8 +96,7 @@ export function createUmlObject(objectConfig) {
     tabindex: "0"
   });
 
-  const id = crypto.randomUUID();
-  group.dataset.id = id;
+  group.dataset.id = crypto.randomUUID();
   group.dataset.name = name;
   group.dataset.x = renderer.x;
   group.dataset.y = y;
@@ -200,7 +205,6 @@ export function loadSavedState(umlGroup) {
 
 export function saveCurrentState(umlGroup) {
   const id = umlGroup.dataset.id;
-  const save = umlSavedStates.get(id);  
 
   umlSavedStates.set(id, {
     width: Number(umlGroup.dataset.width),

@@ -1,7 +1,7 @@
 import { createUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { umlSavedStates, createUmlObject,
+import { createUmlObject,
    updateRowLines, loadSavedState,
     saveCurrentState } from "./renderer/uml-renderer.js";
 import { 
@@ -17,10 +17,9 @@ import {
        setBoundaryXMargin,
        } from "./renderer/setters.js";
 import { calculateWrapperThreshold, calculateTotalLinesCount,
-   calculateMinLineWidth,
    calculateNextMaxTotalLinesCount, 
    } from "./renderer/calculators.js";
-import { clamp, stagePoint, svgYFromBottom, nDigits } from "./utils.js";
+import { clamp, stagePoint, nDigits } from "./utils.js";
 
 let activeDrag = null;
 let selectedShape = null;
@@ -55,26 +54,6 @@ function renderUmlConfigs(umlCFGs) {
   } else {
     updateObjectList();
   }
-}
-
-function getShapeConfigPayload(shape) {
-  const config = JSON.parse(shape.dataset.config || "{}");
-
-  return {
-    id: config.id,
-    x: Number(shape.dataset.x),
-    y: Number(shape.dataset.y),
-    width: Number(shape.dataset.width),
-    height: Number(shape.dataset.height),
-  };
-}
-
-function getShapeId(shape) {
-  return shape.dataset.id;
-}
-
-function getChangedConfigsPayload() {
-  return Array.from(elements.canvasSvg.querySelectorAll(".canvas-shape")).map(getShapeConfigPayload);
 }
 
 function updateObjectList() {

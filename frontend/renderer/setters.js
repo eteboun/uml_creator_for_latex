@@ -1,10 +1,5 @@
-import { elements } from "../dom.js";
-import { calculateWrapperThreshold } from "./calculators.js";
-import { factor, getTotalLinesHeight,
-    getRowHeight, getTotalPaddings,
-    getRowById
- } from "./uml-renderer.js";
- import { createSvgElement } from "../utils.js";
+import {calculateWrapperThreshold} from "./calculators.js";
+import {factor, getRowById, getRowHeight, getTotalLinesHeight, getTotalPaddings} from "./uml-renderer.js";
 
 export function setRelativePositions(umlGroup) {
   const sections = umlGroup.querySelectorAll(":scope > g");
@@ -77,8 +72,7 @@ export function setBoundaryWidth(umlGroup) {
 
   const fontSize = Number(umlGroup.dataset.fontSize);
   const textWidth = longestSeqLen * fontSize * factor;
-  const boundaryWidth = textWidth + xMargin * 2;
-  umlGroup.dataset.boundaryWidth = boundaryWidth;
+  umlGroup.dataset.boundaryWidth = textWidth + xMargin * 2;
 }
 
 export function setBoundaryFontSize(umlGroup) {
@@ -97,8 +91,7 @@ export function setBoundaryFontSize(umlGroup) {
   })
 
   const width = Number(umlGroup.dataset.width);
-  const boundaryFontSize = (width - xMargin * 2) / (longestSeqLen * factor);
-  umlGroup.dataset.boundaryFontSize = boundaryFontSize;
+  umlGroup.dataset.boundaryFontSize = (width - xMargin * 2) / (longestSeqLen * factor);
 }
 
 export function setIsOutOfBoundaryFontSize(umlGroup) {
@@ -143,6 +136,5 @@ export function setBoundaryXMargin(umlGroup) {
 
   const width = Number(umlGroup.dataset.width);
   const fontSize = Number(umlGroup.dataset.fontSize);
-  const xMargin = (width - longestSeqLen * fontSize * factor) / 2;
-  umlGroup.dataset.boundaryXMargin = xMargin;
+  umlGroup.dataset.boundaryXMargin = (width - longestSeqLen * fontSize * factor) / 2;
 }
