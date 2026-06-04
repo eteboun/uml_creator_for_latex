@@ -14,7 +14,7 @@ public class Textual {
             case "public" -> "+ ";
             case "protected" -> "# ";
             case "private" -> "- ";
-            default -> "";
+            default -> "~ ";
         };
     }
 

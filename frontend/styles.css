@@ -245,6 +245,7 @@ aside.right .section {
   color: var(--muted);
   font-size: .92rem;
   line-height: 1.45;
+  margin-bottom: 8px;
 }
 
 .code-input {

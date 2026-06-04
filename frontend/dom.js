@@ -12,7 +12,7 @@ export const elements = {
   cornerReadout: document.querySelector("#cornerReadout"),
   fontSizeControl: document.querySelector("#fontSizeControl"),
   xMarginControl: document.querySelector("#xMarginControl"),
-
+  umlRelations: document.querySelector("#umlRelations"),
   widthLabel: document.querySelector("#widthLabel"),
   heightLabel: document.querySelector("#heightLabel"),
   fontSizeLabel: document.querySelector("#fontSizeLabel"),

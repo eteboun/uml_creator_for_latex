@@ -13,6 +13,10 @@ public record MethodInfo(String name,
                          boolean isAbstract) implements DefaultModule {
     @Override
     public String toText() {
-        return String.format("%s%s: %s%s", Textual.accessSpecifierToText(accessSpecifier()), name(), type_(), Textual.modsEnd(this));
+        String parameterText = String.join(", ", parameters().
+                stream().
+                map(ParameterInfo::toText).
+                toList());
+        return String.format("%s%s(%s): %s%s", Textual.accessSpecifierToText(accessSpecifier()), name(), parameterText, type_(), Textual.modsEnd(this));
     }
 }

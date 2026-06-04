@@ -67,10 +67,12 @@ function updateObjectList() {
 
   if (shapes.length === 0) {
     elements.umlObjects.innerHTML = '<div class="uml-empty">Generated UML diagrams will appear here.</div>';
+    elements.umlRelations.innerHTML = '<div class="uml-empty">UML relations will appear here.</div>';
     return;
   }
 
   elements.umlObjects.innerHTML = "";
+  elements.umlRelations.innerHTML = "";
   shapes.forEach((shape, index) => {
     const item = document.createElement("button");
     item.type = "button";
