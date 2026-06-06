@@ -15,40 +15,39 @@ import {
   setYMargin,
 } from "./setters.js";
 
-const umlRows = new Map();
-const umlSections = new Map();
-
-export let factor = null;
+export const umlObjects = new Map();
 export const umlSavedStates = new Map();
 
-export function createRow(umlGroup, sectionGroup, row) {
+export let factor = null;
+
+export function createRow(umlObject, sectionObject, row) {
   const rowGroup = createSvgElement("g", {});
 
   const id = crypto.randomUUID();
-  rowGroup.dataset.id = id;
-  rowGroup.dataset.anchor = row.anchor;
-  umlRows.set(id, {
+  const newRowObject = {
+    anchor: row.anchor,
     content: row.content,
-  });
+  };
 
-  const text = createText(umlGroup, sectionGroup, rowGroup);
+  rowGroup.dataset.id = id;
+  sectionObject.rows.set(id, newRowObject);
+
+  const text = createText(umlObject, sectionObject, newRowObject);
+
   rowGroup.appendChild(text);
   return rowGroup;
 }
 
-export function createText(umlGroup, sectionGroup, rowGroup) {
-  const rowObj = getRowById(rowGroup.dataset.id);
-  const sectionObj = getSectionById(sectionGroup.dataset.id);
+export function createText(umlObject, sectionObject, rowObject) {
 
   const text = createSvgElement("text", {
-    fill: parseColor(sectionObj.textColor),
+    fill: parseColor(sectionObject.textColor),
     "font-family": "monospace",
     "dominant-baseline": "middle",
-    "text-anchor": rowGroup.dataset.anchor === "center" ? "middle" : "start"
+    "text-anchor": rowObject.anchor === "center" ? "middle" : "start"
   });
 
-  const lines = createLines(rowObj.content, Number(umlGroup.dataset.wrapper_threshold));
-
+  const lines = createLines(rowObject, umlObject.wrapperThreshold);
   lines.forEach((line) => {
     const tspan = createSvgElement("tspan", {});
     tspan.textContent = line;
@@ -58,28 +57,34 @@ export function createText(umlGroup, sectionGroup, rowGroup) {
   return text;
 }
 
-export function createSection(umlGroup, section) {
+export function createSection(umlObject, section) {
+  const name = section.name;
+  const config = section.config;
+
   const sectionGroup = createSvgElement("g", {
-    class: `uml-section uml-section-${section.name}`,
+    class: `uml-section uml-section-${name}`,
   });
 
   const id = crypto.randomUUID();
-  umlSections.set(id, {
-    textColor: section.config.textColor,
-    backgroundColor: section.config.backgroundColor
-  })
-  sectionGroup.dataset.name = section.name;
-  sectionGroup.dataset.id = id;
+  const newSectionObject = {
+    name: name,
+    textColor: config.textColor,
+    backgroundColor: config.backgroundColor,
+    rows: new Map(),
+  };
 
   sectionGroup.appendChild(createSvgElement("rect", {
-    fill: parseColor(section.config.backgroundColor),
+    fill: parseColor(config.backgroundColor),
     stroke: "#000000",
     "stroke-width": "0.04"
   }));
 
   section.rows.forEach((row) => {
-    sectionGroup.appendChild(createRow(umlGroup, sectionGroup, row));
+    sectionGroup.appendChild(createRow(umlObject, newSectionObject, row));
   });
+
+  sectionGroup.dataset.id = id;
+  umlObject.sections.set(id, newSectionObject);
 
   return sectionGroup;
 }
@@ -89,6 +94,8 @@ export function createUmlObject(objectConfig) {
   const renderer = objectConfig.renderer;
   const sections = objectConfig.sections;
 
+  factor = calculateCharWidthFactor(renderer.fontSize);
+
   let y = svgYFromBottom(renderer.y + renderer.height);
   const group = createSvgElement("g", {
     transform: `translate(${renderer.x}, ${y})`,
@@ -96,23 +103,27 @@ export function createUmlObject(objectConfig) {
     tabindex: "0"
   });
 
-  group.dataset.id = crypto.randomUUID();
-  group.dataset.name = name;
-  group.dataset.x = renderer.x;
-  group.dataset.y = y;
-  group.dataset.xMargin = renderer.xMargin;
+  const id = crypto.randomUUID();
+  group.dataset.id = id;
 
-  group.dataset.fontSize = renderer.fontSize;
-  group.dataset.baselineSkip = renderer.fontSize * 1.2;
+  const newUmlObject = {
+    name: name,
+    x: renderer.x,
+    y: y,
+    width: renderer.width,
+    height: renderer.height,
+    xMargin: renderer.xMargin,
+    fontSize: renderer.fontSize,
+    baselineSkip: renderer.fontSize * 1.2,
 
-  factor = calculateCharWidthFactor(renderer.fontSize);
+    sections : new Map(),
+  }
 
-  group.dataset.width = renderer.width;
-  group.dataset.height = renderer.height;
+  umlObjects.set(id, newUmlObject);
   setWrapperThreshold(group);
 
   sections.forEach((section) => {
-    group.appendChild(createSection(group, section));
+    group.appendChild(createSection(newUmlObject, section));
   });
   
   setTextFontSize(group);
@@ -131,8 +142,23 @@ export function createUmlObject(objectConfig) {
   setRelativePositions(group);
 
   saveCurrentState(group);
-
   return group;
+}
+
+export function createLines(rowObject, threshold) {
+  return rowObject.content.flatMap(text => textWrapper(text, threshold));
+}
+
+export function getUmlObjectById(id) {
+  return umlObjects.get(id);
+}
+
+export function getSectionObjectById(umlObject, id) {
+  return umlObject.sections.get(id);
+}
+
+export function getRowObjectById(sectionObject, id) {
+  return sectionObject.rows.get(id);
 }
 
 export function getLinesHeight(lines, fontSize, baselineSkip) {
@@ -142,75 +168,71 @@ export function getLinesHeight(lines, fontSize, baselineSkip) {
 }
 
 export function getTotalLinesHeight(umlGroup) {
-  const rows = umlGroup.querySelectorAll(":scope > g > g");
+  const umlObject = getUmlObjectById(umlGroup.dataset.id);
+  const rowGroups = umlGroup.querySelectorAll(":scope > g > g");
+
   let totalLinesHeight = 0;
-  rows.forEach((row) => {
-    const lines = row.querySelectorAll(":scope > text > tspan");
-    totalLinesHeight += getLinesHeight(lines, Number(umlGroup.dataset.fontSize), Number(umlGroup.dataset.baselineSkip));
+  rowGroups.forEach((rowGroup) => {
+    const lines = rowGroup.querySelectorAll(":scope > text > tspan");
+    totalLinesHeight += getLinesHeight(lines, umlObject.fontSize, umlObject.baselineSkip);
   })
   return totalLinesHeight;
 }
 
 export function getTotalPaddings(umlGroup) {
   let totalPaddings = 0;
-  const sections = umlGroup.querySelectorAll(":scope > g");
-  sections.forEach((section) => {
-    totalPaddings += section.querySelectorAll(":scope > g").length + 1;
+  const sectionGroups = umlGroup.querySelectorAll(":scope > g");
+  sectionGroups.forEach((sectionGroup) => {
+    totalPaddings += sectionGroup.querySelectorAll(":scope > g").length + 1;
   })
   return totalPaddings;
 }
 
 export function getRowHeight(umlGroup, lines) {
+  const umlObject = getUmlObjectById(umlGroup.dataset.id);
+
   return (lines.length - 1) *
-   Number(umlGroup.dataset.baselineSkip) +
-    Number(umlGroup.dataset.fontSize) +
-     Number(umlGroup.dataset.y_margin);
-}
-
-export function createLines(content, threshold) {
-  return content.flatMap(text => textWrapper(text, threshold));
-}
-
-export function getRowById(id) {
-  return umlRows.get(id);
-}
-
-export function getSectionById(id) {
-  return umlSections.get(id);
+      umlObject.baselineSkip +
+      umlObject.fontSize +
+      umlObject.yMargin;
 }
 
 export function updateRowLines(umlGroup) {
-  const sections = umlGroup.querySelectorAll(":scope > g");
-  sections.forEach((section) => {
-    const rows = section.querySelectorAll(":scope > g");
-    rows.forEach((row) => {
-      row.querySelector(":scope > text").remove();
-      const text = createText(umlGroup, section, row);
+  const umlObject = getUmlObjectById(umlGroup.dataset.id);
+  const sectionGroups = umlGroup.querySelectorAll(":scope > g");
+  sectionGroups.forEach((sectionGroup) => {
+    const sectionObject = getSectionObjectById(umlObject, sectionGroup.dataset.id);
+    const rowGroups = sectionGroup.querySelectorAll(":scope > g");
+    rowGroups.forEach((rowGroup) => {
+      const rowObject = getRowObjectById(sectionObject, rowGroup.dataset.id);
 
-      row.appendChild(text);
+      rowGroup.querySelector(":scope > text").remove();
+      const text = createText(umlObject, sectionObject, rowObject);
+
+      rowGroup.appendChild(text);
     })
   })
 }
 
 export function loadSavedState(umlGroup) {
-  const id = umlGroup.dataset.id;
-  const save = umlSavedStates.get(id);
+  const umlObject = getUmlObjectById(umlGroup.dataset.id);
+  const umlSave = umlSavedStates.get(umlGroup.dataset.id);
 
-  umlGroup.dataset.width = save.width;
-  umlGroup.dataset.wrapper_threshold = save.wrapper_threshold;  
-  umlGroup.dataset.fontSize = save.fontSize;
-  umlGroup.dataset.height = save.height;
-  umlGroup.dataset.xMargin = save.xMargin;
+  umlObject.width = umlSave.width;
+  umlObject.height = umlSave.height;
+  umlObject.wrapperThreshold = umlSave.wrapperThreshold;
+  umlObject.fontSize = umlSave.fontSize;
+  umlObject.xMargin = umlSave.xMargin;
 }
 
 export function saveCurrentState(umlGroup) {
-  const id = umlGroup.dataset.id;
+  const umlObject = getUmlObjectById(umlGroup.dataset.id);
 
-  umlSavedStates.set(id, {
-    width: Number(umlGroup.dataset.width),
-    wrapper_threshold: Number(umlGroup.dataset.wrapper_threshold),
-    fontSize: Number(umlGroup.dataset.fontSize),
-    height: Number(umlGroup.dataset.height),
-    xMargin: Number(umlGroup.dataset.xMargin)
+  umlSavedStates.set(umlGroup.dataset.id, {
+    width: umlObject.width,
+    wrapperThreshold: umlObject.wrapperThreshold,
+    fontSize: umlObject.fontSize,
+    height: umlObject.height,
+    xMargin: umlObject.xMargin,
   });
 }

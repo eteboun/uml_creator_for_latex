@@ -117,15 +117,21 @@ aside.right .section {
   gap: 8px;
 }
 
+.relation-list {
+  display: grid;
+  gap: 8px;
+}
+
 .add-object {
   width: 100%;
   margin-bottom: 10px;
   justify-content: center;
 }
 
-.object-list-item {
+.uml-list-item {
   width: 100%;
   padding: 9px 10px;
+  margin-bottom: 10px;
   border: 1px solid var(--line);
   border-radius: 7px;
   color: var(--ink);
@@ -134,8 +140,26 @@ aside.right .section {
   text-align: left;
 }
 
-.object-list-item:hover,
-.object-list-item.selected {
+.uml-list-item:hover,
+.uml-list-item.selected {
+  border-color: var(--accent);
+  background: rgba(30, 111, 104, .08);
+}
+
+.relation-list-item {
+  width: 100%;
+  padding: 9px 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.relation-list-item:hover,
+.relation-list-item.selected {
   border-color: var(--accent);
   background: rgba(30, 111, 104, .08);
 }
@@ -245,7 +269,14 @@ aside.right .section {
   color: var(--muted);
   font-size: .92rem;
   line-height: 1.45;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.relation-empty {
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.45;
+  margin-bottom: 12px;
 }
 
 .code-input {
@@ -436,37 +467,6 @@ main {
 .canvas-shape.dragging {
   cursor: grabbing;
   z-index: 10;
-}
-
-.uml-class {
-  width: 100%;
-  border-collapse: collapse;
-  border: 2px solid #1f2937;
-  color: #111827;
-  background: #d8e9ff;
-  box-shadow: 0 10px 22px rgba(17, 24, 39, .12);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 12px;
-  line-height: 1.25;
-}
-
-.uml-class th,
-.uml-class td {
-  border: 2px solid #1f2937;
-  padding: 5px 8px;
-  text-align: left;
-  vertical-align: top;
-}
-
-.uml-class th {
-  color: #fff04a;
-  background: #4b83d1;
-  text-align: center;
-  font-weight: 700;
-}
-
-.uml-class td {
-  background: #d8e9ff;
 }
 
 .uml-member {

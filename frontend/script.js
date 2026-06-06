@@ -1,9 +1,11 @@
 import { createUml } from "./api.js";
 import { canvasSize } from "./config.js";
 import { elements } from "./dom.js";
-import { createUmlObject,
-   updateRowLines, loadSavedState,
-    saveCurrentState } from "./renderer/uml-renderer.js";
+import {
+  createUmlObject,
+  updateRowLines, loadSavedState,
+  saveCurrentState, getUmlObjectById, umlObjects, umlSavedStates
+} from "./renderer/uml-renderer.js";
 import { 
    setRelativePositions, setYMargin,
      setBoundaryWidth,
@@ -24,18 +26,9 @@ import { clamp, stagePoint, nDigits } from "./utils.js";
 let activeDrag = null;
 let selectedShape = null;
 
-function shapeSizeInCanvasUnits(shape) {
-  return {
-    width: Number(shape.dataset.width),
-    height: Number(shape.dataset.height)
-  };
-}
-
 function applyShapeTransform(shape) {
-  const x = Number(shape.dataset.x);
-  const y = Number(shape.dataset.y)
-
-  shape.setAttribute("transform", `translate(${x}, ${y})`);
+  const umlObject = getUmlObjectById(shape.dataset.id);
+  shape.setAttribute("transform", `translate(${umlObject.x}, ${umlObject.y})`);
 }
 
 function renderUmlConfigs(umlCFGs) {
@@ -43,9 +36,10 @@ function renderUmlConfigs(umlCFGs) {
 
   umlCFGs.forEach((objectConfig) => {
     const shape = createUmlObject(objectConfig);
+    const umlObject = getUmlObjectById(shape.dataset.id);
     elements.canvasSvg.appendChild(shape);
     bindShape(shape);
-    moveShape(shape, Number(shape.dataset.x), Number(shape.dataset.y));
+    moveShape(shape, umlObject.x, umlObject.y);
     firstNewShape ||= shape;
   });
 
@@ -74,11 +68,12 @@ function updateObjectList() {
   elements.umlObjects.innerHTML = "";
   elements.umlRelations.innerHTML = "";
   shapes.forEach((shape, index) => {
+    const umlObject = getUmlObjectById(shape.dataset.id);
     const item = document.createElement("button");
     item.type = "button";
-    item.className = "object-list-item";
+    item.className = "uml-list-item";
     item.classList.toggle("selected", shape === selectedShape);
-    item.textContent = `${index + 1}. ${shape.dataset.name}`;
+    item.textContent = `${index + 1}. ${umlObject.name}`;
     item.addEventListener("click", () => setSelectedShape(shape));
     elements.umlObjects.appendChild(item);
   });
@@ -96,19 +91,17 @@ function updateSelectionControls() {
   elements.saveConfig.disabled = !hasObjects;
 
   if (hasSelection) {
-    const width = selectedShape.dataset.width;
-    const height = selectedShape.dataset.height;
+    const umlObject = getUmlObjectById(selectedShape.dataset.id);
+    elements.xLengthControl.value = umlObject.width;
+    elements.yLengthControl.value = umlObject.height;
+    elements.fontSizeControl.value = umlObject.fontSize;
+    elements.xMarginControl.value = umlObject.xMargin;
 
-    elements.xLengthControl.value = width;
-    elements.yLengthControl.value = height;
-    elements.fontSizeControl.value = selectedShape.dataset.fontSize;
-    elements.xMarginControl.value = selectedShape.dataset.xMargin;
-
-    elements.cornerReadout.textContent = `Left top: ${nDigits(selectedShape.dataset.x)}, ${nDigits(selectedShape.dataset.y)}`;
-    elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
-    elements.heightLabel.textContent = `Height: ${nDigits(selectedShape.dataset.height)}`;
-    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.fontSize)}`;
-    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.xMargin)}`;
+    elements.cornerReadout.textContent = `Left top: ${nDigits(umlObject.x)}, ${nDigits(umlObject.y)}`;
+    elements.widthLabel.textContent = `Width: ${nDigits(umlObject.width)}`;
+    elements.heightLabel.textContent = `Height: ${nDigits(umlObject.height)}`;
+    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(umlObject.fontSize)}`;
+    elements.xMarginLabel.textContent = `X Margin: ${nDigits(umlObject.xMargin)}`;
 
   } else {
     elements.cornerReadout.textContent = "Left top: -";
@@ -134,20 +127,12 @@ function setSelectedShape(shape) {
   updateObjectList();
 }
 
-function applySize(shape) {
-  const width = clamp(Number(shape.dataset.width), 1, canvasSize.width - Number(shape.dataset.x));
-  const height = clamp(Number(shape.dataset.height), 1, canvasSize.height - Number(shape.dataset.y));
-  shape.dataset.width = width;
-  shape.dataset.height = height;
-}
-
 function moveShape(shape, x, y) {
-  applySize(shape);
-  const size = shapeSizeInCanvasUnits(shape);
-  const maxX = Math.max(0, canvasSize.width - size.width);
-  const maxY = Math.max(0, canvasSize.height - size.height);
-  shape.dataset.x = clamp(x, 0, maxX);
-  shape.dataset.y = clamp(y, 0, maxY);
+  const umlObject = getUmlObjectById(shape.dataset.id);
+  const maxX = Math.max(0, canvasSize.width - umlObject.width);
+  const maxY = Math.max(0, canvasSize.height - umlObject.height);
+  umlObject.x = clamp(x, 0, maxX);
+  umlObject.y = clamp(y, 0, maxY);
 
   applyShapeTransform(shape);
 
@@ -157,8 +142,8 @@ function moveShape(shape, x, y) {
 }
 
 function bindShape(shape) {
-  applySize(shape);
 
+  const umlObject = getUmlObjectById(shape.dataset.id);
   shape.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     shape.setPointerCapture(event.pointerId);
@@ -169,8 +154,8 @@ function bindShape(shape) {
     activeDrag = {
       type: "move",
       shape,
-      offsetX: point.x - Number(shape.dataset.x),
-      offsetY: point.y - Number(shape.dataset.y)
+      offsetX: point.x - umlObject.x,
+      offsetY: point.y - umlObject.y,
     };
   });
 }
@@ -201,7 +186,8 @@ function bindPageEvents() {
 
   window.addEventListener("resize", () => {
     elements.canvasSvg.querySelectorAll(".canvas-shape").forEach((shape) => {
-      moveShape(shape, Number(shape.dataset.x), Number(shape.dataset.y));
+      const umlObject = getUmlObjectById(shape.dataset.id);
+      moveShape(shape, umlObject.x, umlObject.y);
     });
   });
 
@@ -211,6 +197,8 @@ function bindPageEvents() {
     const shapeToDelete = selectedShape;
     elements.deleteObject.disabled = true;
 
+    umlObjects.remove(shapeToDelete.dataset.id);
+    umlSavedStates.remove(shapeToDelete.dataset.id);
     shapeToDelete.remove();
     selectedShape = null;
     updateSelectionControls();
@@ -219,35 +207,33 @@ function bindPageEvents() {
 
   elements.xLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
-    
+
+    const umlObject = getUmlObjectById(selectedShape.dataset.id);
+
     let nextWidth = Number(elements.xLengthControl.value);
-    nextWidth = clamp(nextWidth, 1, canvasSize.width - Number(selectedShape.dataset.x));    
+    nextWidth = clamp(nextWidth, 1, canvasSize.width - umlObject.x);
     
-    let dir = nextWidth > Number(selectedShape.dataset.width);
-    const fontSize = Number(selectedShape.dataset.fontSize);
-    const xMargin = Number(selectedShape.dataset.xMargin);
+    let dir = nextWidth > umlObject.width;
+    const fontSize = umlObject.fontSize;
+    const xMargin = umlObject.xMargin;
 
-    if (nextWidth < Number(selectedShape.dataset.boundaryWidth) && !dir) {      
-      const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
-      const rows = selectedShape.querySelectorAll(":scope > g > g");
-
+    if (nextWidth < umlObject.boundaryWidth && !dir) {
+      const maxTotalLinesCount = umlObject.maxTotalLinesCount;
       let nextWrapperThreshold = calculateWrapperThreshold(nextWidth, fontSize, xMargin);
-      nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
-      
-      let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);
+      let newTotalLinesCount = calculateTotalLinesCount(selectedShape, nextWrapperThreshold);
 
       if (newTotalLinesCount > maxTotalLinesCount) {                        
         loadSavedState(selectedShape);
       } else {
-        selectedShape.dataset.width = nextWidth;
+        umlObject.width = nextWidth;
         setWrapperThreshold(selectedShape);
       }
       updateRowLines(selectedShape);
     } else {
-      selectedShape.dataset.width = nextWidth;
+      umlObject.width = nextWidth;
       setWrapperThreshold(selectedShape);
 
-      if (selectedShape.dataset.isOutOfBoundaryWidth === "false") {
+      if (!umlObject.isOutOfBoundaryWidth) {
         updateRowLines(selectedShape);
       }
     }
@@ -266,25 +252,25 @@ function bindPageEvents() {
     setTotalLinesCount(selectedShape);
     saveCurrentState(selectedShape);    
 
-    elements.xLengthControl.value = selectedShape.dataset.width;
-    elements.widthLabel.textContent = `Width: ${nDigits(selectedShape.dataset.width)}`;
+    elements.xLengthControl.value = umlObject.width;
+    elements.widthLabel.textContent = `Width: ${nDigits(umlObject.width)}`;
   });
 
   elements.yLengthControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
-    let nextHeight = Number(elements.yLengthControl.value);
-    const baselineSkip = Number(selectedShape.dataset.baselineSkip);
-    const y = Number(selectedShape.dataset.y);
-    nextHeight = clamp(nextHeight, 1, canvasSize.height - y); 
+    const umlObject = getUmlObjectById(selectedShape.dataset.id);
 
-    const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(nextHeight, baselineSkip);
-    const currentTotalLinesCount = Number(selectedShape.dataset.totalLinesCount);
+    let nextHeight = Number(elements.yLengthControl.value);
+    nextHeight = clamp(nextHeight, 1, canvasSize.height - umlObject.y);
+
+    const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(nextHeight, umlObject.baselineSkip);
+    const currentTotalLinesCount = umlObject.totalLinesCount;
 
     if (currentTotalLinesCount > nextMaxTotalLinesCount) {
       loadSavedState(selectedShape);
     } else {
-      selectedShape.dataset.height = nextHeight
+      umlObject.height = nextHeight
     }
 
     setYMargin(selectedShape);
@@ -293,47 +279,47 @@ function bindPageEvents() {
 
     saveCurrentState(selectedShape);
 
-    elements.yLengthControl.value = selectedShape.dataset.height;
-    elements.heightLabel.textContent = `Height: ${nDigits(selectedShape.dataset.height)}`;
+    elements.yLengthControl.value = umlObject.height;
+    elements.heightLabel.textContent = `Height: ${nDigits(umlObject.height)}`;
 
   });
 
   elements.fontSizeControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
+    const umlObject = getUmlObjectById(selectedShape.dataset.id);
+
     const nextFontSize = Number(elements.fontSizeControl.value);
     const nextBaselineSkip = nextFontSize * 1.2;
-    let dir = nextFontSize > Number(selectedShape.dataset.fontSize);
+    let dir = nextFontSize > umlObject.fontSize;
 
-    const width = Number(selectedShape.dataset.width);
-    const xMargin = Number(selectedShape.dataset.xMargin);    
-    const height = Number(selectedShape.dataset.height);
+    const width = umlObject.width;
+    const xMargin = umlObject.xMargin;
+    const height = umlObject.height;
 
-    if (nextFontSize > Number(selectedShape.dataset.boundaryFontSize) && dir) {
+    if (nextFontSize > umlObject.boundaryFontSize && dir) {
       const nextMaxTotalLinesCount = calculateNextMaxTotalLinesCount(height, nextBaselineSkip);
-      const rows = selectedShape.querySelectorAll(":scope > g > g");
 
       let nextWrapperThreshold = calculateWrapperThreshold(width, nextFontSize, xMargin);
-      nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
-      let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);      
+      let newTotalLinesCount = calculateTotalLinesCount(selectedShape, nextWrapperThreshold);
 
       if (newTotalLinesCount > nextMaxTotalLinesCount) {                        
         loadSavedState(selectedShape);
       } else {
-        selectedShape.dataset.fontSize = nextFontSize;
+        umlObject.fontSize = nextFontSize;
         setWrapperThreshold(selectedShape);
       }
       updateRowLines(selectedShape);
     } else {
-      selectedShape.dataset.fontSize = nextFontSize;
+      umlObject.fontSize = nextFontSize;
       setWrapperThreshold(selectedShape);
 
-      if (selectedShape.dataset.isOutOfBoundaryFontSize === "true") {        
+      if (umlObject.isOutOfBoundaryFontSize) {
         updateRowLines(selectedShape);
       }
     }
 
-    selectedShape.dataset.baselineSkip = Number(selectedShape.dataset.fontSize) * 1.2;
+    umlObject.baselineSkip = umlObject.fontSize * 1.2;
     setTextFontSize(selectedShape);
     setYMargin(selectedShape);
     setRelativePositions(selectedShape);
@@ -349,41 +335,40 @@ function bindPageEvents() {
     setTotalLinesCount(selectedShape);
     saveCurrentState(selectedShape);    
 
-    elements.fontSizeControl.value = selectedShape.dataset.fontSize;
-    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(selectedShape.dataset.fontSize)}`;
+    elements.fontSizeControl.value = umlObject.fontSize;
+    elements.fontSizeLabel.textContent = `Font Size: ${nDigits(umlObject.fontSize)}`;
 
   });
 
   elements.xMarginControl.addEventListener("input", () => {
     if (!selectedShape) return;
 
+    const umlObject = getUmlObjectById(selectedShape.dataset.id);
+
     const nextXMargin = Number(elements.xMarginControl.value);
-    let dir = nextXMargin > Number(selectedShape.dataset.xMargin);
+    let dir = nextXMargin > umlObject.xMargin;
 
-    const fontSize = Number(selectedShape.dataset.fontSize);
-    const width = Number(selectedShape.dataset.width);
+    const fontSize = umlObject.fontSize;
+    const width = umlObject.width;
 
-    if (nextXMargin > Number(selectedShape.dataset.boundaryXMargin) && dir) {      
-      const maxTotalLinesCount = Number(selectedShape.dataset.maxTotalLinesCount);
-      const rows = selectedShape.querySelectorAll(":scope > g > g");
+    if (nextXMargin > umlObject.boundaryXMargin && dir) {
+      const maxTotalLinesCount = umlObject.maxTotalLinesCount;
 
       let nextWrapperThreshold = calculateWrapperThreshold(width, fontSize, nextXMargin);
-      nextWrapperThreshold = Math.max(nextWrapperThreshold, 1);
-      
-      let newTotalLinesCount = calculateTotalLinesCount(rows, nextWrapperThreshold);
+      let newTotalLinesCount = calculateTotalLinesCount(selectedShape, nextWrapperThreshold);
 
       if (newTotalLinesCount > maxTotalLinesCount) {                        
         loadSavedState(selectedShape);
       } else {
-        selectedShape.dataset.xMargin = nextXMargin;
+        umlObject.xMargin = nextXMargin;
         setWrapperThreshold(selectedShape);
       }
       updateRowLines(selectedShape);
     } else {
-      selectedShape.dataset.xMargin = nextXMargin;
+      umlObject.xMargin = nextXMargin;
       setWrapperThreshold(selectedShape);
 
-      if (selectedShape.dataset.isOutOfBoundaryXMargin === "true") {
+      if (umlObject.isOutOfBoundaryXMargin) {
         updateRowLines(selectedShape);
       }
     }
@@ -402,8 +387,8 @@ function bindPageEvents() {
     setTotalLinesCount(selectedShape);
     saveCurrentState(selectedShape); 
 
-    elements.xMarginControl.value = selectedShape.dataset.xMargin;
-    elements.xMarginLabel.textContent = `X Margin: ${nDigits(selectedShape.dataset.xMargin)}`;
+    elements.xMarginControl.value = umlObject.xMargin;
+    elements.xMarginLabel.textContent = `X Margin: ${nDigits(umlObject.xMargin)}`;
 
   });
   elements.sendCode.addEventListener("click", async () => {
@@ -414,8 +399,9 @@ function bindPageEvents() {
 
 function initializeExistingShapes() {
   elements.canvasSvg.querySelectorAll(".canvas-shape").forEach((shape) => {
+    const umlObject = getUmlObjectById(shape.dataset.id);
     bindShape(shape);
-    moveShape(shape, Number(shape.dataset.x), Number(shape.dataset.y));
+    moveShape(shape, umlObject.x, umlObject.y);
   });
   updateObjectList();
 }
